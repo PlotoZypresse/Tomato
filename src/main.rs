@@ -74,3 +74,21 @@ fn user_input() -> u64 {
 
     return number;
 }
+
+fn break(break_time; u32) {
+    let break_time_sec = break_time * 60;
+    
+    let bar = ProgressBar::new(break_time_sec);
+    bar.set_style(
+        ProgressStyle::with_template("{spinner:.cyan} 🍅 [Break Remainng {bar:.40.cyan/gray}] {pos}/{len}s")
+        .unwrap()
+        .progress_chars("█▓▒░")
+    );
+
+    for _ in 0..break_time_sec {
+        thread::sleep(Duration::from_secs(1));
+        bar.inc(1);
+    }
+
+
+}
