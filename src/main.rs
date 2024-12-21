@@ -9,10 +9,15 @@ use rodio::{Decoder, OutputStream, source::Source};
 
 fn main() {
     // get user input
-    let input = user_input();
+    let time_tup = user_input();
+    let input_timer = time_tup.0;
+    let input_break = time_tup.1;
     
     //start timer with input time
-    timer(input);
+    timer(input_timer);
+
+    //start break
+    pomodoro_break(input_break);
 }
 
 fn timer(time: u64) {
@@ -37,46 +42,66 @@ fn timer(time: u64) {
     // Get an output stream handle to the default sound device
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     // load the sound file
-    let file = BufReader::new(File::open("sounds/pomodoroFinish.mp3").unwrap());
+    let file = BufReader::new(File::open("src/sounds/pomodoroFinish.mp3").unwrap());
     //decode sound file into a source
     let source = Decoder::new(file).unwrap();
-    //Play the sound
-    
-   
+
     println!("✅ Pomodoro Timer completed");
 
+    //Play the sound
     let _ = stream_handle.play_raw(source.convert_samples());
     std::thread::sleep(std::time::Duration::from_secs(5));
+}
 
-    //bar.finish_with_message() :wq
-    //
-} 
-
-fn user_input() -> u64 {
+fn user_input() -> (u64, u64) {
+    // time input for timer time
     println!("How long should the Pomodoro timer last?");
     println!("Please input in minutes: ");
 
-    let mut input = String::new();
-    
+    let mut input_time = String::new();
+
     // read user input
     io::stdin()
-        .read_line(&mut input)
+        .read_line(&mut input_time)
         .expect("Failed to read input");
 
     //parsing the input to an integer
-    let number: u64 = match input.trim().parse() {
+    let number_time: u64 = match input_time.trim().parse() {
         Ok(num) => num,
         Err(_) => {
             println!("Invalid input! please input a positiv integer");
-            return 0;
+            return (0, 0);
         }
     };
 
-    return number;
+    // time input for break time
+    println!("How long should the breaks be?");
+    println!("Please input in minutes: ");
+
+    let mut input_break = String::new();
+
+    // read user input
+    io::stdin()
+        .read_line(&mut input_break)
+        .expect("Failed to read input");
+
+    //parsing the input to an integer
+    let number_break: u64 = match input_break.trim().parse() {
+        Ok(num) => num,
+        Err(_) => {
+            println!("Invalid input! please input a positiv integer");
+            return (0, 0);
+        }
+    };
+    // tuple where index 0 is the timer time and  index 1 is the break time
+    let time_tup = (number_time, number_break);
+
+    return time_tup;
+
 }
 
-fn break(break_time; u32) {
-    let break_time_sec = break_time * 60;
+fn pomodoro_break(time: u64) {
+    let break_time_sec = time * 60;
     
     let bar = ProgressBar::new(break_time_sec);
     bar.set_style(
@@ -90,5 +115,15 @@ fn break(break_time; u32) {
         bar.inc(1);
     }
 
+    // Get an output stream handle to the default sound device
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    // load the sound file
+    let file = BufReader::new(File::open("src/sounds/pomodoroFinish.mp3").unwrap());
+    //decode sound file into a source
+    let source = Decoder::new(file).unwrap();
+    //Play the sound
+    let _ = stream_handle.play_raw(source.convert_samples());
+    println!("✅ Break is completed");
 
+    std::thread::sleep(std::time::Duration::from_secs(5));
 }
