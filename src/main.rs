@@ -7,17 +7,16 @@ use std::io::BufReader;
 use rodio::{Decoder, OutputStream, source::Source};
 
 
-fn main() {
-    // get user input
+fn main() {    // get user input
     let time_tup = user_input();
     let input_timer = time_tup.0;
     let input_break = time_tup.1;
     
     //start timer with input time
     timer(input_timer);
-
-    //start break
+        //start break
     pomodoro_break(input_break);
+
 }
 
 fn timer(time: u64) {
@@ -50,6 +49,34 @@ fn timer(time: u64) {
 
     //Play the sound
     let _ = stream_handle.play_raw(source.convert_samples());
+    std::thread::sleep(std::time::Duration::from_secs(5));
+}
+
+fn pomodoro_break(time: u64) {
+    let break_time_sec = time * 60;
+
+    let bar = ProgressBar::new(break_time_sec);
+    bar.set_style(
+        ProgressStyle::with_template("{spinner:.cyan} 🍅 [Break Remainng {bar:.40.cyan/gray}] {pos}/{len}s")
+        .unwrap()
+        .progress_chars("█▓▒░")
+    );
+
+    for _ in 0..break_time_sec {
+        thread::sleep(Duration::from_secs(1));
+        bar.inc(1);
+    }
+
+    // Get an output stream handle to the default sound device
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    // load the sound file
+    let file = BufReader::new(File::open("src/sounds/pomodoroFinish.mp3").unwrap());
+    //decode sound file into a source
+    let source = Decoder::new(file).unwrap();
+    //Play the sound
+    let _ = stream_handle.play_raw(source.convert_samples());
+    println!("✅ Break is completed");
+
     std::thread::sleep(std::time::Duration::from_secs(5));
 }
 
@@ -98,32 +125,4 @@ fn user_input() -> (u64, u64) {
 
     return time_tup;
 
-}
-
-fn pomodoro_break(time: u64) {
-    let break_time_sec = time * 60;
-    
-    let bar = ProgressBar::new(break_time_sec);
-    bar.set_style(
-        ProgressStyle::with_template("{spinner:.cyan} 🍅 [Break Remainng {bar:.40.cyan/gray}] {pos}/{len}s")
-        .unwrap()
-        .progress_chars("█▓▒░")
-    );
-
-    for _ in 0..break_time_sec {
-        thread::sleep(Duration::from_secs(1));
-        bar.inc(1);
-    }
-
-    // Get an output stream handle to the default sound device
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    // load the sound file
-    let file = BufReader::new(File::open("src/sounds/pomodoroFinish.mp3").unwrap());
-    //decode sound file into a source
-    let source = Decoder::new(file).unwrap();
-    //Play the sound
-    let _ = stream_handle.play_raw(source.convert_samples());
-    println!("✅ Break is completed");
-
-    std::thread::sleep(std::time::Duration::from_secs(5));
 }
