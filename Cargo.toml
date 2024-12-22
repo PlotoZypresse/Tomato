@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 indicatif = "0.17"
 rodio = "0.20.1"
+crossterm = "0.26"
