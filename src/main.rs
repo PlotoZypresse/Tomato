@@ -15,7 +15,6 @@ struct Timer {
 }
 
 fn main() {
-
     loop {
         if ui() == 9 {
             break;
@@ -26,8 +25,6 @@ fn main() {
 fn pomodor_work_timer(timer: &mut Timer) {
     // convert the input time to seconds
     let time_to_sec = &timer.work_time * 60;
-
-    //let mut time_worked: u64 = 0;
 
     let bar = ProgressBar::new(time_to_sec);
     bar.set_style(
@@ -40,9 +37,6 @@ fn pomodor_work_timer(timer: &mut Timer) {
         thread::sleep(Duration::from_secs(1));
         bar.inc(1);
     }
-
-    //set the timer
-    //thread::sleep(Duration::from_secs(time_to_sec));
     
     // Get an output stream handle to the default sound device
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
@@ -53,12 +47,12 @@ fn pomodor_work_timer(timer: &mut Timer) {
 
     println!("✅ Pomodoro Timer completed\n");
 
+    //increment the time worked
     timer.time_worked = timer.time_worked + timer.work_time;
-   //Play the sound
+
+    //Play the sound
     let _ = stream_handle.play_raw(source.convert_samples());
     std::thread::sleep(std::time::Duration::from_secs(2));
-
-    println!("You have worked for {} minutes this session good job!!!", timer.time_worked);
 }
 
 fn pomodoro_break_timer(timer: &Timer) {
@@ -128,18 +122,12 @@ fn user_input(timer: &mut Timer) {
             return;
         }
     };
-    // tuple where index 0 is the timer time and  index 1 is the break time
-    //let time_tup = (number_time, number_break);
 
     timer.work_time = number_time;
     timer.break_time = number_break;
 }
 
 fn ui() -> u64{
-    //let mut time_tup: (u64, u64) = (25,5);
-//    let default_work_time: u64 = 25;
-//    let default_break_time: u64 = 5;
-
     let mut timer = Timer {
         work_time: 25,
         break_time: 5,
@@ -161,7 +149,8 @@ Tomato a terminal pomodoro timer written in rust
 ===================================================
 Please choose an option:
 1. Set time for work and break time
-2. Start timer
+2. Start timer (Default 25/5)
+3. Stats
 9. Exit
 Enter your choice: "
         );
@@ -186,12 +175,27 @@ Enter your choice: "
                 //time_tup =
                 user_input(&mut timer);
                 println!("Work and break timers set.\n");
-
             }
             2 => {
+                execute!(
+                    std::io::stdout(),
+                    terminal::Clear(terminal::ClearType::All),
+                    cursor::MoveTo(0,0)
+                )
+                .unwrap();
+
                 println!("\nStarting Pomodoro timer...");
                 pomodor_work_timer(&mut timer);
+                println!("...Press Enter to start the break...");
+                let mut dummy = String::new();
+                io::stdin().read_line(&mut dummy).unwrap();
                 pomodoro_break_timer(&timer);
+            }
+            3 => {
+                println!("You have worked for {} minutes this session good job!!!", timer.time_worked);
+                println!("...Press Enter to return to the menu...");
+                let mut dummy = String::new();
+                io::stdin().read_line(&mut dummy).unwrap();
             }
             9 =>  {
                 println!("Exiting...");
