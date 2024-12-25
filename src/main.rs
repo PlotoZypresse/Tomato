@@ -8,7 +8,14 @@ use rodio::{Decoder, OutputStream, source::Source};
 use crossterm::{execute, terminal, cursor};
 //use std::io::{stdout, Write};
 
+struct Timer {
+    work_time: u64,
+    break_time: u64,
+    time_worked: u64,
+}
+
 fn main() {
+
     loop {
         if ui() == 9 {
             break;
@@ -16,9 +23,11 @@ fn main() {
     }
 }
 
-fn timer(time: u64) {
+fn pomodor_work_timer(timer: &mut Timer) {
     // convert the input time to seconds
-    let time_to_sec = time * 60;
+    let time_to_sec = &timer.work_time * 60;
+
+    //let mut time_worked: u64 = 0;
 
     let bar = ProgressBar::new(time_to_sec);
     bar.set_style(
@@ -44,13 +53,16 @@ fn timer(time: u64) {
 
     println!("✅ Pomodoro Timer completed\n");
 
-    //Play the sound
+    timer.time_worked = timer.time_worked + timer.work_time;
+   //Play the sound
     let _ = stream_handle.play_raw(source.convert_samples());
     std::thread::sleep(std::time::Duration::from_secs(2));
+
+    println!("You have worked for {} minutes this session good job!!!", timer.time_worked);
 }
 
-fn pomodoro_break(time: u64) {
-    let break_time_sec = time * 60;
+fn pomodoro_break_timer(timer: &Timer) {
+    let break_time_sec = timer.work_time * 60;
 
     let bar = ProgressBar::new(break_time_sec);
     bar.set_style(
@@ -63,7 +75,6 @@ fn pomodoro_break(time: u64) {
         thread::sleep(Duration::from_secs(1));
         bar.inc(1);
     }
-
     // Get an output stream handle to the default sound device
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     // load the sound file
@@ -77,7 +88,7 @@ fn pomodoro_break(time: u64) {
     std::thread::sleep(std::time::Duration::from_secs(2));
 }
 
-fn user_input() -> (u64, u64) {
+fn user_input(timer: &mut Timer) {
     // time input for timer time
     println!("How long should the Pomodoro timer last?");
     println!("Please input in minutes: ");
@@ -94,7 +105,7 @@ fn user_input() -> (u64, u64) {
         Ok(num) => num,
         Err(_) => {
             println!("Invalid input! please input a positiv integer");
-            return (0, 0);
+            return;
         }
     };
 
@@ -114,17 +125,27 @@ fn user_input() -> (u64, u64) {
         Ok(num) => num,
         Err(_) => {
             println!("Invalid input! please input a positiv integer");
-            return (0, 0);
+            return;
         }
     };
     // tuple where index 0 is the timer time and  index 1 is the break time
-    let time_tup = (number_time, number_break);
+    //let time_tup = (number_time, number_break);
 
-    return time_tup;
+    timer.work_time = number_time;
+    timer.break_time = number_break;
 }
 
 fn ui() -> u64{
-    let mut time_tup: (u64, u64) = (25,5);
+    //let mut time_tup: (u64, u64) = (25,5);
+//    let default_work_time: u64 = 25;
+//    let default_break_time: u64 = 5;
+
+    let mut timer = Timer {
+        work_time: 25,
+        break_time: 5,
+        time_worked: 0,
+    };
+
     loop {
         execute!(
             std::io::stdout(),
@@ -162,14 +183,15 @@ Enter your choice: "
 
         match input {
             1 => {
-                time_tup = user_input();
+                //time_tup =
+                user_input(&mut timer);
                 println!("Work and break timers set.\n");
 
             }
             2 => {
                 println!("\nStarting Pomodoro timer...");
-                timer(time_tup.0);
-                pomodoro_break(time_tup.1);
+                pomodor_work_timer(&mut timer);
+                pomodoro_break_timer(&timer);
             }
             9 =>  {
                 println!("Exiting...");
