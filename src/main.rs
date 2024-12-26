@@ -1,17 +1,13 @@
-use std::thread;
-use std::time::Duration;
-use std::io;
-use indicatif::{ProgressBar, ProgressStyle};
-use std::fs::File;
-use std::io::BufReader;
-use rodio::{Decoder, OutputStream, source::Source};
-use crossterm::{execute, terminal, cursor};
-//use std::io::{stdout, Write};
+mod timers;
+mod menu;
 
-struct Timer {
-    work_time: u64,
-    break_time: u64,
-    time_worked: u64,
+use std::io;
+use crossterm::{execute, terminal, cursor};
+
+pub struct Timer {
+    pub work_time: u64,
+    pub break_time: u64,
+    pub time_worked: u64,
 }
 
 fn main() {
@@ -20,66 +16,6 @@ fn main() {
             break;
         }
     }
-}
-
-fn pomodor_work_timer(timer: &mut Timer) {
-    // convert the input time to seconds
-    let time_to_sec = &timer.work_time * 60;
-
-    let bar = ProgressBar::new(time_to_sec);
-    bar.set_style(
-        ProgressStyle::with_template("{spinner:.cyan} 🍅 [Time Remainng {bar:.40.cyan/gray}] {pos}/{len}s")
-        .unwrap()
-        .progress_chars("█▓▒░")
-    );
-
-    for _ in 0..time_to_sec {
-        thread::sleep(Duration::from_secs(1));
-        bar.inc(1);
-    }
-    
-    // Get an output stream handle to the default sound device
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    // load the sound file
-    let file = BufReader::new(File::open("sounds/pomodoroFinish.mp3").unwrap());
-    //decode sound file into a source
-    let source = Decoder::new(file).unwrap();
-
-    println!("✅ Pomodoro Timer completed\n");
-
-    //increment the time worked
-    timer.time_worked = timer.time_worked + timer.work_time;
-
-    //Play the sound
-    let _ = stream_handle.play_raw(source.convert_samples());
-    std::thread::sleep(std::time::Duration::from_secs(2));
-}
-
-fn pomodoro_break_timer(timer: &Timer) {
-    let break_time_sec = timer.work_time * 60;
-
-    let bar = ProgressBar::new(break_time_sec);
-    bar.set_style(
-        ProgressStyle::with_template("{spinner:.cyan} 🍅 [Break Remainng {bar:.40.cyan/gray}] {pos}/{len}s")
-        .unwrap()
-        .progress_chars("█▓▒░")
-    );
-
-    for _ in 0..break_time_sec {
-        thread::sleep(Duration::from_secs(1));
-        bar.inc(1);
-    }
-    // Get an output stream handle to the default sound device
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    // load the sound file
-    let file = BufReader::new(File::open("sounds/breakDone.mp3").unwrap());
-    //decode sound file into a source
-    let source = Decoder::new(file).unwrap();
-    //Play the sound
-    let _ = stream_handle.play_raw(source.convert_samples());
-    println!("✅ Break is completed\n");
-
-    std::thread::sleep(std::time::Duration::from_secs(2));
 }
 
 fn user_input(timer: &mut Timer) {
@@ -135,25 +71,7 @@ fn ui() -> u64{
     };
 
     loop {
-        execute!(
-            std::io::stdout(),
-            terminal::Clear(terminal::ClearType::All),
-            cursor::MoveTo(0,0)
-        )
-        .unwrap();
-
-        //formated like this to print right
-        println!(
-            "===================================================
-Tomato a terminal pomodoro timer written in rust
-===================================================
-Please choose an option:
-1. Set time for work and break time
-2. Start timer (Default 25/5)
-3. Stats
-9. Exit
-Enter your choice: "
-        );
+        menu::print_menu();
 
         // read user input
         let mut input = String::new();
@@ -185,11 +103,14 @@ Enter your choice: "
                 .unwrap();
 
                 println!("\nStarting Pomodoro timer...");
-                pomodor_work_timer(&mut timer);
+                timers::pomodor_work_timer(&mut timer);
                 println!("...Press Enter to start the break...");
                 let mut dummy = String::new();
                 io::stdin().read_line(&mut dummy).unwrap();
-                pomodoro_break_timer(&timer);
+                timers::pomodoro_break_timer(&timer);
+                println!("\nPress Enter to return to the menu.");
+                let mut dummy = String::new();
+                io::stdin().read_line(&mut dummy).unwrap();
             }
             3 => {
                 println!("You have worked for {} minutes this session good job!!!", timer.time_worked);
