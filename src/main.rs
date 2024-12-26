@@ -1,19 +1,13 @@
 mod timers;
+mod menu;
 
-use std::thread;
-use std::time::Duration;
 use std::io;
-use indicatif::{ProgressBar, ProgressStyle};
-use std::fs::File;
-use std::io::BufReader;
-use rodio::{Decoder, OutputStream, source::Source};
 use crossterm::{execute, terminal, cursor};
-//use std::io::{stdout, Write};
 
-struct Timer {
-    work_time: u64,
-    break_time: u64,
-    time_worked: u64,
+pub struct Timer {
+    pub work_time: u64,
+    pub break_time: u64,
+    pub time_worked: u64,
 }
 
 fn main() {
@@ -23,8 +17,6 @@ fn main() {
         }
     }
 }
-
-
 
 fn user_input(timer: &mut Timer) {
     // time input for timer time
@@ -79,25 +71,7 @@ fn ui() -> u64{
     };
 
     loop {
-        execute!(
-            std::io::stdout(),
-            terminal::Clear(terminal::ClearType::All),
-            cursor::MoveTo(0,0)
-        )
-        .unwrap();
-
-        //formated like this to print right
-        println!(
-            "===================================================
-Tomato a terminal pomodoro timer written in rust
-===================================================
-Please choose an option:
-1. Set time for work and break time
-2. Start timer (Default 25/5)
-3. Stats
-9. Exit
-Enter your choice: "
-        );
+        menu::print_menu();
 
         // read user input
         let mut input = String::new();
@@ -129,11 +103,14 @@ Enter your choice: "
                 .unwrap();
 
                 println!("\nStarting Pomodoro timer...");
-                pomodor_work_timer(&mut timer);
+                timers::pomodor_work_timer(&mut timer);
                 println!("...Press Enter to start the break...");
                 let mut dummy = String::new();
                 io::stdin().read_line(&mut dummy).unwrap();
-                pomodoro_break_timer(&timer);
+                timers::pomodoro_break_timer(&timer);
+                println!("\nPress Enter to return to the menu.");
+                let mut dummy = String::new();
+                io::stdin().read_line(&mut dummy).unwrap();
             }
             3 => {
                 println!("You have worked for {} minutes this session good job!!!", timer.time_worked);

@@ -1,3 +1,11 @@
+use std::thread;
+use std::time::Duration;
+use indicatif::{ProgressBar, ProgressStyle};
+use std::fs::File;
+use std::io::BufReader;
+use rodio::{Decoder, OutputStream, source::Source};
+use crate::Timer;
+
 pub fn pomodor_work_timer(timer: &mut Timer) {
     // convert the input time to seconds
     let time_to_sec = &timer.work_time * 60;
