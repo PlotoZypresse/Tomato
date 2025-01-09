@@ -1,10 +1,10 @@
-use std::thread;
-use std::time::Duration;
+use crate::Timer;
 use indicatif::{ProgressBar, ProgressStyle};
+use rodio::{source::Source, Decoder, OutputStream};
 use std::fs::File;
 use std::io::BufReader;
-use rodio::{Decoder, OutputStream, source::Source};
-use crate::Timer;
+use std::thread;
+use std::time::Duration;
 
 pub fn pomodor_work_timer(timer: &mut Timer) {
     // convert the input time to seconds
@@ -12,9 +12,11 @@ pub fn pomodor_work_timer(timer: &mut Timer) {
 
     let bar = ProgressBar::new(time_to_sec);
     bar.set_style(
-        ProgressStyle::with_template("{spinner:.cyan} 🍅 [Time Remainng {bar:.40.cyan/gray}] {pos}/{len}s")
+        ProgressStyle::with_template(
+            "{spinner:.cyan} 🍅 [Time Remainng {bar:.40.cyan/gray}] {pos}/{len}s",
+        )
         .unwrap()
-        .progress_chars("█▓▒░")
+        .progress_chars("█▓▒░"),
     );
 
     for _ in 0..time_to_sec {
@@ -44,9 +46,11 @@ pub fn pomodoro_break_timer(timer: &Timer) {
 
     let bar = ProgressBar::new(break_time_sec);
     bar.set_style(
-        ProgressStyle::with_template("{spinner:.cyan} 🍅 [Break Remainng {bar:.40.cyan/gray}] {pos}/{len}s")
+        ProgressStyle::with_template(
+            "{spinner:.cyan} 🍅 [Break Remainng {bar:.40.cyan/gray}] {pos}/{len}s",
+        )
         .unwrap()
-        .progress_chars("█▓▒░")
+        .progress_chars("█▓▒░"),
     );
 
     for _ in 0..break_time_sec {

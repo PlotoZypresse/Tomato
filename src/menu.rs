@@ -1,6 +1,6 @@
-use std::io::{self, Write};
-use crossterm::{execute, terminal, cursor};
 use crossterm::style::Stylize;
+use crossterm::{cursor, execute, terminal};
+use std::io::{self, Write};
 
 pub fn print_menu() {
     execute!(
@@ -11,9 +11,15 @@ pub fn print_menu() {
     .unwrap();
 
     // Title and Borders
-    println!("{}", "==================================================".green());
+    println!(
+        "{}",
+        "==================================================".green()
+    );
     println!("{}", "    Tomato - A Terminal Pomodoro Timer".bold().red());
-    println!("{}", "==================================================".green());
+    println!(
+        "{}",
+        "==================================================".green()
+    );
 
     // Menu Instructions
     println!();

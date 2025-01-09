@@ -1,8 +1,8 @@
-mod timers;
 mod menu;
+mod timers;
 
+use crossterm::{cursor, execute, terminal};
 use std::io;
-use crossterm::{execute, terminal, cursor};
 
 pub struct Timer {
     pub work_time: u64,
@@ -63,7 +63,7 @@ fn user_input(timer: &mut Timer) {
     timer.break_time = number_break;
 }
 
-fn ui() -> u64{
+fn ui() -> u64 {
     let mut timer = Timer {
         work_time: 25,
         break_time: 5,
@@ -98,7 +98,7 @@ fn ui() -> u64{
                 execute!(
                     std::io::stdout(),
                     terminal::Clear(terminal::ClearType::All),
-                    cursor::MoveTo(0,0)
+                    cursor::MoveTo(0, 0)
                 )
                 .unwrap();
 
@@ -113,14 +113,17 @@ fn ui() -> u64{
                 io::stdin().read_line(&mut dummy).unwrap();
             }
             3 => {
-                println!("You have worked for {} minutes this session good job!!!", timer.time_worked);
+                println!(
+                    "You have worked for {} minutes this session good job!!!",
+                    timer.time_worked
+                );
                 println!("...Press Enter to return to the menu...");
                 let mut dummy = String::new();
                 io::stdin().read_line(&mut dummy).unwrap();
             }
-            9 =>  {
+            9 => {
                 println!("Exiting...");
-                return 9
+                return 9;
             }
             _ => println!("Invalid option. Please try again.\n"),
         }
