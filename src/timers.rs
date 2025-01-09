@@ -6,14 +6,14 @@ use std::io::BufReader;
 use std::thread;
 use std::time::Duration;
 
-pub fn pomodor_work_timer(timer: &mut Timer) {
+pub fn pomodoro_work_timer(timer: &mut Timer) {
     // convert the input time to seconds
     let time_to_sec = &timer.work_time * 60;
 
     let bar = ProgressBar::new(time_to_sec);
     bar.set_style(
         ProgressStyle::with_template(
-            "{spinner:.cyan} 🍅 [Time Remainng {bar:.40.cyan/gray}] {pos}/{len}s",
+            "{spinner:.cyan} 🍅 [Time Remaining {bar:.40.cyan/gray}] {pos}/{len}s",
         )
         .unwrap()
         .progress_chars("█▓▒░"),
@@ -47,7 +47,7 @@ pub fn pomodoro_break_timer(timer: &Timer) {
     let bar = ProgressBar::new(break_time_sec);
     bar.set_style(
         ProgressStyle::with_template(
-            "{spinner:.cyan} 🍅 [Break Remainng {bar:.40.cyan/gray}] {pos}/{len}s",
+            "{spinner:.cyan} 🍅 [Break Remaining {bar:.40.cyan/gray}] {pos}/{len}s",
         )
         .unwrap()
         .progress_chars("█▓▒░"),

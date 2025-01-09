@@ -30,7 +30,7 @@ fn user_input(timer: &mut Timer) {
         .read_line(&mut input_time)
         .expect("Failed to read input");
 
-    //parsing the input to an integer
+    // parsing the input to an integer
     let number_time: u64 = match input_time.trim().parse() {
         Ok(num) => num,
         Err(_) => {
@@ -50,7 +50,7 @@ fn user_input(timer: &mut Timer) {
         .read_line(&mut input_break)
         .expect("Failed to read input");
 
-    //parsing the input to an integer
+    // parsing the input to an integer
     let number_break: u64 = match input_break.trim().parse() {
         Ok(num) => num,
         Err(_) => {
@@ -83,7 +83,7 @@ fn ui() -> u64 {
         let input: u64 = match input.trim().parse() {
             Ok(num) => num,
             Err(_) => {
-                println!("Invalid input! please input a positiv integer");
+                println!("Invalid input! please input a positive integer");
                 continue;
             }
         };
@@ -103,7 +103,7 @@ fn ui() -> u64 {
                 .unwrap();
 
                 println!("\nStarting Pomodoro timer...");
-                timers::pomodor_work_timer(&mut timer);
+                timers::pomodoro_work_timer(&mut timer);
                 println!("...Press Enter to start the break...");
                 let mut dummy = String::new();
                 io::stdin().read_line(&mut dummy).unwrap();
