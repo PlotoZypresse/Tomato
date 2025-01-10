@@ -4,13 +4,17 @@
 //!
 //! Tomato uses a JSON file to store the sessions a user has had.
 
+use chrono::prelude::*;
+use chrono::serde::ts_seconds; // Allows for seralization with Chrono Timestamps
+use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::prelude::*;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Session {
-    pub timestamp: String, // Maybe use chrono?
+    #[serde(with = "ts_seconds")] // Converts to a format Serde can (de)serailize
+    pub timestamp: DateTime<Utc>, // Has to be UTC, can be converted later
     pub work_time: u32,
     pub break_time: u32,
 }
