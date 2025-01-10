@@ -11,7 +11,6 @@ use std::io::prelude::*;
 #[derive(Serialize, Deserialize, Debug)]
 struct Session {
     pub timestamp: String, // Maybe use chrono?
-    pub id: u32,
     pub work_time: u32,
     pub break_time: u32,
 }
