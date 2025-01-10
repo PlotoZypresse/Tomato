@@ -54,8 +54,8 @@ fn user_input(timer: &mut Timer) {
         }
     };
 
-    timer.work_time = number_time;
-    timer.break_time = number_break;
+    timer.work_minutes = number_time;
+    timer.break_minutes = number_break;
 }
 
 fn ui() -> u64 {
@@ -110,7 +110,7 @@ fn ui() -> u64 {
             3 => {
                 println!(
                     "You have worked for {} minutes this session good job!!!",
-                    timer.time_worked
+                    timer.total_worked_minutes
                 );
                 println!("...Press Enter to return to the menu...");
                 let mut dummy = String::new();
