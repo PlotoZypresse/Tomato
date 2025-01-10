@@ -17,15 +17,56 @@ use std::time::Duration;
 /// assert_eq!(timer.break_minutes, 10);
 /// assert_eq!(timer.total_worked_minutes, 0);
 /// ```
+#[derive(Debug)]
 pub struct Timer {
     pub work_minutes: u64,
     pub break_minutes: u64,
     pub total_worked_minutes: u64,
 }
 
+impl Timer {
+    /// Creates a new `Timer` instance with the specified work and break durations.
+    pub fn new(work_minutes: u64, break_minutes: u64) -> Timer {
+        Timer {
+            work_minutes,
+            break_minutes,
+            total_worked_minutes: 0,
+        }
+    }
+
+    /// Resets the total number of worked minutes for the current timer.
+    pub fn reset(&mut self) {
+        self.total_worked_minutes = 0;
+    }
+
+    /// Adds a number of minutes to the total number of minutes worked.
+    pub fn add_worked_minutes(&mut self, minutes: u64) {
+        self.total_worked_minutes += minutes;
+    }
+
+    /// Returns the current distribution of work and break minutes, along with
+    /// the total number of minutes worked, formatted in a `String`.
+    pub fn display(&self) -> String {
+        format!(
+            "Work: {}m, Break: {}m, Total Worked: {}m",
+            self.work_minutes, self.break_minutes, self.total_worked_minutes
+        )
+    }
+
+    /// Sets the work minutes to the amount specified in the argument.
+    pub fn set_work_minutes(&mut self, minutes: u64) {
+        self.work_minutes = minutes;
+    }
+
+    /// Sets the break minutes to the amount specified in the argument.
+    pub fn set_break_minutes(&mut self, minutes: u64) {
+        self.break_minutes = minutes;
+    }
+}
+
 pub fn pomodoro_work_timer(timer: &mut Timer) {
     // convert the input time to seconds
-    let time_to_sec = &timer.work_time * 60;
+    let time_to_sec = &timer.work_minutes * 60;
 
     let bar = ProgressBar::new(time_to_sec);
     bar.set_style(
@@ -51,7 +92,7 @@ pub fn pomodoro_work_timer(timer: &mut Timer) {
     println!("✅ Pomodoro Timer completed\n");
 
     //increment the time worked
-    timer.total_worked_minutes = timer.total_worked_minutes + timer.work_minutes;
+    timer.add_worked_minutes(timer.work_minutes);
 
     //Play the sound
     let _ = stream_handle.play_raw(source.convert_samples());
