@@ -13,49 +13,39 @@ pub fn ui_loop() {
     }
 }
 
+fn get_number_from_input() -> u64 {
+    loop {
+        let mut input_time = String::new();
+
+        if io::stdin().read_line(&mut input_time).is_ok() {
+            // If the number can be successfully parsed into an u64 data type,
+            // then return it.
+            if let Ok(num) = input_time.trim().parse::<u64>() {
+                return num;
+            }
+        }
+        // If the number cannot succesfully be parsed, then ask the user to
+        // try again, and run the loop again.
+        println!("Invalid input! Please input a positive integer.")
+    }
+}
+
 fn user_input(timer: &mut Timer) {
     // time input for timer time
     println!("How long should the Pomodoro timer last?");
     println!("Please input in minutes: ");
 
-    let mut input_time = String::new();
-
-    // read user input
-    io::stdin()
-        .read_line(&mut input_time)
-        .expect("Failed to read input");
-
-    // parsing the input to an integer
-    let number_time: u64 = match input_time.trim().parse() {
-        Ok(num) => num,
-        Err(_) => {
-            println!("Invalid input! please input a positiv integer");
-            return;
-        }
-    };
+    let input_work: u64 = get_number_from_input();
 
     // time input for break time
     println!("How long should the breaks be?");
     println!("Please input in minutes: ");
 
-    let mut input_break = String::new();
+    let input_break: u64 = get_number_from_input();
 
-    // read user input
-    io::stdin()
-        .read_line(&mut input_break)
-        .expect("Failed to read input");
+    timer.work_minutes = input_work;
+    timer.break_minutes = input_break;
 
-    // parsing the input to an integer
-    let number_break: u64 = match input_break.trim().parse() {
-        Ok(num) => num,
-        Err(_) => {
-            println!("Invalid input! please input a positiv integer");
-            return;
-        }
-    };
-
-    timer.work_minutes = number_time;
-    timer.break_minutes = number_break;
 }
 
 fn ui() -> u64 {
