@@ -1,10 +1,15 @@
-use crate::Timer;
 use indicatif::{ProgressBar, ProgressStyle};
 use rodio::{source::Source, Decoder, OutputStream};
 use std::fs::File;
 use std::io::BufReader;
 use std::thread;
 use std::time::Duration;
+
+pub struct Timer {
+    pub work_time: u64,
+    pub break_time: u64,
+    pub time_worked: u64,
+}
 
 pub fn pomodoro_work_timer(timer: &mut Timer) {
     // convert the input time to seconds
