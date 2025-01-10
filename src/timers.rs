@@ -10,17 +10,17 @@ use std::time::Duration;
 /// # Examples
 ///
 /// ```
-/// let timer = Timer { work_time: 25, break_time: 10, time_worked 0 };
-/// println!("Current work/break distribution: {}/{}", timer.work_time, timer.break_time);
-/// println!("Time worked in total: {}", timer.time_worked);
-/// assert_eq!(timer.work_time, 25);
-/// assert_eq!(timer.break_time, 10);
-/// assert_eq!(timer.time_worked, 0);
+/// let timer = Timer { work_minutes: 25, break_minutes: 10, total_worked_minutes: 0 };
+/// println!("Current work/break distribution: {}/{}", timer.work_minutes, timer.break_minutes);
+/// println!("Time worked in total: {}", timer.total_worked_minutes);
+/// assert_eq!(timer.work_minutes, 25);
+/// assert_eq!(timer.break_minutes, 10);
+/// assert_eq!(timer.total_worked_minutes, 0);
 /// ```
 pub struct Timer {
-    pub work_time: u64,
-    pub break_time: u64,
-    pub time_worked: u64,
+    pub work_minutes: u64,
+    pub break_minutes: u64,
+    pub total_worked_minutes: u64,
 }
 
 pub fn pomodoro_work_timer(timer: &mut Timer) {
@@ -51,7 +51,7 @@ pub fn pomodoro_work_timer(timer: &mut Timer) {
     println!("✅ Pomodoro Timer completed\n");
 
     //increment the time worked
-    timer.time_worked = timer.time_worked + timer.work_time;
+    timer.total_worked_minutes = timer.total_worked_minutes + timer.work_minutes;
 
     //Play the sound
     let _ = stream_handle.play_raw(source.convert_samples());
@@ -59,7 +59,7 @@ pub fn pomodoro_work_timer(timer: &mut Timer) {
 }
 
 pub fn pomodoro_break_timer(timer: &Timer) {
-    let break_time_sec = timer.work_time * 60;
+    let break_time_sec = timer.work_minutes * 60;
 
     let bar = ProgressBar::new(break_time_sec);
     bar.set_style(
