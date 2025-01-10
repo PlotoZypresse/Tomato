@@ -29,7 +29,7 @@ impl Session {
 }
 
 impl Storage {
-    pub fn new(path: String) {
+    pub fn new(path: String) -> Storage {
         Storage { storage_file: path }
     }
 }
