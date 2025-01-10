@@ -24,7 +24,24 @@ struct Storage {
 }
 
 impl Session {
-    pub fn new() -> Session {}
+    pub fn new(timestamp: Option<DateTime<Utc>>, work_time: u32, break_time: u32) -> Session {
+        match timestamp {
+            None => {
+                return Session {
+                    timestamp: Utc::now(),
+                    work_time,
+                    break_time,
+                }
+            }
+            Some(timestamp) => {
+                return Session {
+                    timestamp,
+                    work_time,
+                    break_time,
+                }
+            }
+        }
+    }
 
     pub fn to_json() -> String {
         serde_json::to_string(&self).unwrap()
