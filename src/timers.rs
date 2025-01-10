@@ -44,7 +44,7 @@ pub fn pomodoro_work_timer(timer: &mut Timer) {
     // Get an output stream handle to the default sound device
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     // load the sound file
-    let file = BufReader::new(File::open("sounds/pomodoroFinish.mp3").unwrap());
+    let file = BufReader::new(File::open("./sounds/pomodoroFinish.mp3").unwrap());
     //decode sound file into a source
     let source = Decoder::new(file).unwrap();
 
@@ -77,7 +77,7 @@ pub fn pomodoro_break_timer(timer: &Timer) {
     // Get an output stream handle to the default sound device
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     // load the sound file
-    let file = BufReader::new(File::open("sounds/breakDone.mp3").unwrap());
+    let file = BufReader::new(File::open("./sounds/breakDone.mp3").unwrap());
     //decode sound file into a source
     let source = Decoder::new(file).unwrap();
     //Play the sound
