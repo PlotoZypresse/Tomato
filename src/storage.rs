@@ -43,7 +43,7 @@ impl Session {
         }
     }
 
-    pub fn to_json() -> String {
+    pub fn to_json(&self) -> String {
         serde_json::to_string(&self).unwrap()
     }
 }
