@@ -96,7 +96,19 @@ fn ui() -> u64 {
                 io::stdin().read_line(&mut dummy).unwrap();
             }
             3 => {
-                timer.display();
+                let minutes = timer.total_worked_minutes;
+
+                if minutes == 0 {
+                    println!(
+                        "You've worked for 0 minutes in total! It's almost better than nothing!"
+                    );
+                } else if minutes <= 25 {
+                    println!(
+                        "You've worked for {minutes} minutes in total! It's better than nothing!"
+                    );
+                } else {
+                    println!("You've worked for {minutes} minutes! Good job!");
+                }
                 println!("...Press Enter to return to the menu...");
                 let mut dummy = String::new();
                 io::stdin().read_line(&mut dummy).unwrap();
