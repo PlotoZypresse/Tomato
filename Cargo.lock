@@ -329,6 +329,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "itoa"
+version = "1.0.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d75a2a4b1b190afb6f5425f10f6a8f959d2ea0b9c2b1d79553551850539e4674"
+
+[[package]]
 name = "jni"
 version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -696,6 +702,7 @@ dependencies = [
  "indicatif",
  "rodio",
  "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -703,6 +710,12 @@ name = "rustc-hash"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
+
+[[package]]
+name = "ryu"
+version = "1.0.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f3cb5ba0dc43242ce17de99c180e96db90b235b8a9fdc9543c96d2209116bd9f"
 
 [[package]]
 name = "same-file"
@@ -737,6 +750,18 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "serde_json"
+version = "1.0.135"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b0d7ba2887406110130a978386c4e1befb98c674b4fba677954e4db976630d9"
+dependencies = [
+ "itoa",
+ "memchr",
+ "ryu",
+ "serde",
 ]
 
 [[package]]
