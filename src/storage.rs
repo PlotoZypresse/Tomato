@@ -6,7 +6,7 @@
 
 use chrono::prelude::*;
 use chrono::serde::ts_seconds; // Allows for seralization with Chrono Timestamps
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::prelude::*;
@@ -51,5 +51,26 @@ impl Session {
 impl Storage {
     pub fn new(path: String) -> Storage {
         Storage { storage_file: path }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn serialize_session_to_json() {
+        let date: DateTime<Utc> = Utc
+            .with_ymd_and_hms(2012, 1, 19, 0, 0, 0)
+            .single()
+            .expect("Invalid date or time");
+
+        let json = Session::new(Some(date), 25, 5).to_json();
+
+        // January 19, 2012 00:00:00 is 1326931200 in Unix time
+        assert_eq!(
+            json,
+            "{\"timestamp\":1326931200,\"work_time\":25,\"break_time\":5}"
+        );
     }
 }
