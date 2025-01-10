@@ -9,7 +9,7 @@ use std::fs::File;
 use std::io::prelude::*;
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Session {
+pub struct Session {
     pub timestamp: String, // Maybe use chrono?
     pub work_time: u32,
     pub break_time: u32,
