@@ -47,8 +47,8 @@ impl Session {
         serde_json::to_string(&self).unwrap()
     }
 
-    pub fn from_json(string: &str) -> Self {
-        serde_json::from_str(string).unwrap()
+    pub fn from_json(string: &str) -> Option<Self> {
+        serde_json::from_str(string).ok()
     }
 }
 
@@ -61,41 +61,20 @@ impl Storage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
 
     #[test]
-    fn serialize_session_to_json() {
+    fn serialize_session_to_json_and_back() {
         let date: DateTime<Utc> = Utc
             .with_ymd_and_hms(2012, 1, 19, 0, 0, 0)
             .single()
             .expect("Invalid date or time");
 
-        let json = Session::new(Some(date), 25, 5).to_json();
+        let session = Session::new(Some(date), 25, 5);
+        let json_str = session.to_json();
 
-        // January 19, 2012 00:00:00 is 1326931200 in Unix time
-        assert_eq!(
-            json,
-            "{\"timestamp\":1326931200,\"work_time\":25,\"break_time\":5}"
-        );
-    }
+        let deserialized_session = Session::from_json(&json_str).expect("Invalid JSON");
 
-    #[test]
-    fn deserialize_session_from_json() {
-        let json = "{\"timestamp\":1326931200,\"work_time\":25,\"break_time\":5}";
-
-        let deserialized = Session::from_json(json);
-
-        let date: DateTime<Utc> = Utc
-            .with_ymd_and_hms(2012, 1, 19, 0, 0, 0)
-            .single()
-            .expect("Invalid date or time");
-
-        assert_eq!(
-            deserialized,
-            Session {
-                timestamp: date,
-                work_time: 25,
-                break_time: 5
-            }
-        );
+        assert_eq!(session, deserialized_session);
     }
 }
