@@ -77,4 +77,14 @@ mod tests {
 
         assert_eq!(session, deserialized_session);
     }
+
+    #[test]
+    fn serialize_session_to_json_and_back_with_none() {
+        let session = Session::new(None, 25, 5);
+        let json_str = session.to_json();
+
+        let deserialized_session = Session::from_json(&json_str).expect("Invalid JSON");
+
+        assert_eq!(session, deserialized_session);
+    }
 }
