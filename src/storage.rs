@@ -55,6 +55,16 @@ struct Storage {
 }
 
 impl Session {
+    /// Creates a new instance of the Session struct.
+    ///
+    /// ## Arguments
+    /// * timestamp: An optional argument of a DateTime<Utc> timestamp. If left
+    /// to none, it becomes Jan 1, 1970.
+    /// * work_time: The amount of time the user has worked this session.
+    /// * break_time: The amount of time the user has had a break this session.
+    ///
+    /// ## Returns
+    /// An instance of Session from specified arguments.
     pub fn new(timestamp: Option<DateTime<Utc>>, work_time: u32, break_time: u32) -> Session {
         match timestamp {
             None => {
@@ -77,10 +87,20 @@ impl Session {
         }
     }
 
+    /// Converts the Session instance to a JSON string.
+    ///
+    /// ## Returns
+    /// A string containing a JSON formatted string containing the informations
+    /// contained within the instance.
     pub fn to_json(&self) -> String {
         serde_json::to_string(&self).unwrap()
     }
 
+    /// Takes a JSON string and converts it to an instance of Session
+    ///
+    /// ## Returns
+    /// * Some(Session) if successfull
+    /// * None if unsuccessfull
     pub fn from_json(string: &str) -> Option<Self> {
         serde_json::from_str(string).ok()
     }
