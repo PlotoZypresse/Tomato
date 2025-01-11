@@ -19,14 +19,10 @@ use std::path::Path;
 /// ## Returns
 /// The home directory. Panics if this cannot be found.
 fn get_home_path() -> String {
-    let mut path: String;
-
-    match home_dir() {
-        Some(home_path) => {
-            path = home_path.into_os_string().into_string().unwrap();
-        }
+    let path: String = match home_dir() {
+        Some(home_path) => home_path.into_os_string().into_string().unwrap(),
         None => panic!("Impossible to get home dir."),
-    }
+    };
 
     path
 }
@@ -58,8 +54,7 @@ impl Session {
     /// Creates a new instance of the Session struct.
     ///
     /// ## Arguments
-    /// * timestamp: An optional argument of a `DateTime<Utc>` timestamp. If left
-    /// to none, it becomes Jan 1, 1970.
+    /// * timestamp: An optional argument of a `DateTime<Utc>` timestamp. If left to none, it becomes Jan 1, 1970.
     /// * work_time: The amount of time the user has worked this session.
     /// * break_time: The amount of time the user has had a break this session.
     ///
@@ -67,23 +62,19 @@ impl Session {
     /// An instance of Session from specified arguments.
     pub fn new(timestamp: Option<DateTime<Utc>>, work_time: u32, break_time: u32) -> Session {
         match timestamp {
-            None => {
-                return Session {
-                    timestamp: Utc
-                        .with_ymd_and_hms(1970, 1, 1, 0, 0, 0)
-                        .single()
-                        .expect("Failed to parse fixed date."),
-                    work_time,
-                    break_time,
-                }
-            }
-            Some(timestamp) => {
-                return Session {
-                    timestamp,
-                    work_time,
-                    break_time,
-                }
-            }
+            None => Session {
+                timestamp: Utc
+                    .with_ymd_and_hms(1970, 1, 1, 0, 0, 0)
+                    .single()
+                    .expect("Failed to parse fixed date."),
+                work_time,
+                break_time,
+            },
+            Some(timestamp) => Session {
+                timestamp,
+                work_time,
+                break_time,
+            },
         }
     }
 
@@ -110,12 +101,10 @@ impl Storage {
     /// Creates a new Storage struct.
     ///
     /// ## Arguments
-    /// * path
-    /// The name of the file, without any prefix. E.g. "file.txt"
+    /// * path: The name of the file, without any prefix. E.g. "file.txt"
     ///
     /// ## Returns
-    /// A storage struct containing the variable `storage_file` with the value
-    /// of argument appended to the default path prefix ("~/.tomato/")
+    /// A storage struct containing the variable `storage_file` with the value of argument appended to the default path prefix ("~/.tomato/")
     pub fn new(folder: Option<String>, path: String) -> Storage {
         Storage {
             storage_file: format!(
@@ -145,7 +134,13 @@ impl Storage {
         // If it does exist, it truncates the file.
         let mut file = File::create(self.storage_file.clone())?;
 
-        file.write(text.as_bytes())?;
+        let byte_amount = file.write(text.as_bytes())?;
+
+        if byte_amount != text.len() {
+            panic!("Something went wrong while writing to file. Written amount not equal to amount which should have been written.");
+        }
+
+        file.flush().unwrap();
 
         Ok(())
     }
@@ -157,7 +152,7 @@ impl Storage {
     /// ## Returns
     /// A Result value. Ok(()) if successfully deleted file, err otherwise.
     fn remove_file(&self) -> std::io::Result<()> {
-        let mut file = fs::remove_file(self.storage_file.clone())?;
+        fs::remove_file(self.storage_file.clone())?;
         Ok(())
     }
 
