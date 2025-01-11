@@ -64,7 +64,6 @@ impl Storage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::json;
 
     #[test]
     fn serialize_session_to_json_and_back() {
