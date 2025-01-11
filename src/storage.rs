@@ -28,7 +28,10 @@ impl Session {
         match timestamp {
             None => {
                 return Session {
-                    timestamp: Utc::now(),
+                    timestamp: Utc
+                        .with_ymd_and_hms(1970, 1, 1, 0, 0, 0)
+                        .single()
+                        .expect("Failed to parse fixed date."),
                     work_time,
                     break_time,
                 }
@@ -68,7 +71,7 @@ mod tests {
         let date: DateTime<Utc> = Utc
             .with_ymd_and_hms(2012, 1, 19, 0, 0, 0)
             .single()
-            .expect("Invalid date or time");
+            .expect("Failed to parse fixed date.");
 
         let session = Session::new(Some(date), 25, 5);
         let json_str = session.to_json();
