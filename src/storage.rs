@@ -58,7 +58,7 @@ impl Session {
     /// Creates a new instance of the Session struct.
     ///
     /// ## Arguments
-    /// * timestamp: An optional argument of a DateTime<Utc> timestamp. If left
+    /// * timestamp: An optional argument of a `DateTime<Utc>` timestamp. If left
     /// to none, it becomes Jan 1, 1970.
     /// * work_time: The amount of time the user has worked this session.
     /// * break_time: The amount of time the user has had a break this session.
