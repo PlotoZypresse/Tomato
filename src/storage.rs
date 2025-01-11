@@ -9,8 +9,8 @@ use chrono::serde::ts_seconds; // Allows for seralization with Chrono Timestamps
 use chrono::{DateTime, Utc};
 use home::home_dir;
 use serde::{Deserialize, Serialize};
-use std::fs;
 use std::fs::File;
+use std::fs::{self, OpenOptions};
 use std::io::prelude::*;
 use std::path::Path;
 
@@ -45,7 +45,7 @@ pub struct Session {
 }
 
 /// Holds the variable containing the path to the storage file.
-struct Storage {
+pub struct Storage {
     storage_file: String,
     folder: String,
 }
@@ -132,7 +132,10 @@ impl Storage {
 
         // File::create creates a file if it does not exist.
         // If it does exist, it truncates the file.
-        let mut file = File::create(self.storage_file.clone())?;
+        let mut file = OpenOptions::new()
+            .append(true)
+            .create(true)
+            .open(self.storage_file.clone())?;
 
         let byte_amount = file.write(text.as_bytes())?;
 
