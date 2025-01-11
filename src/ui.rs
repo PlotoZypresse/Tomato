@@ -1,13 +1,39 @@
 use crate::{
     menu,
+    storage::{SessionList, Storage},
     timers::{self, Timer},
 };
 use crossterm::{cursor, execute, terminal};
 use std::io;
 
+fn load_sessions() -> SessionList {
+    let folder = String::from(".tomato");
+    let file_name = String::from("sessions.json");
+
+    let storage = Storage::new(Some(folder), file_name.clone());
+
+    let contents = storage
+        .read()
+        .expect(&format!("Could not read the contents of {}", file_name));
+
+    if contents.len() <= 0 {
+        return SessionList::new(None);
+    }
+
+    // Load from storage.
+    let sessions =
+        SessionList::from_json(&contents).expect("Could not parse the contents of file.");
+
+    println!("{:?}", sessions);
+
+    sessions
+}
+
 pub fn ui_loop() {
+    let mut sessions = load_sessions();
+
     loop {
-        if ui() == 9 {
+        if ui(&mut sessions) == 9 {
             break;
         }
     }
@@ -50,8 +76,10 @@ fn user_input(timer: &mut Timer) {
     timer.set_break_minutes(input_break);
 }
 
-fn ui() -> u64 {
-    let mut timer = Timer::new(25, 5);
+fn ui(session_list: &mut SessionList) -> u64 {
+    let total_minutes = session_list.total_work_minutes();
+
+    let mut timer = Timer::new(25, 5, total_minutes);
 
     loop {
         menu::print_menu();
@@ -86,7 +114,7 @@ fn ui() -> u64 {
                 .unwrap();
 
                 println!("\nStarting Pomodoro timer...");
-                timers::pomodoro_work_timer(&mut timer);
+                timers::pomodoro_work_timer(&mut timer, session_list);
                 println!("...Press Enter to start the break...");
                 let mut dummy = String::new();
                 io::stdin().read_line(&mut dummy).unwrap();

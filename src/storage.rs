@@ -36,7 +36,7 @@ fn folder_exists(folder: String) -> bool {
     Path::new(&path).exists()
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Session {
     #[serde(with = "ts_seconds")] // Converts to a format Serde can (de)serailize
     pub timestamp: DateTime<Utc>, // Has to be UTC, can be converted later
@@ -124,6 +124,14 @@ impl SessionList {
         }
     }
 
+    /// Pushes a value to the `sessions` vector.
+    ///
+    /// ## Arguments
+    /// * session: A Session instance to be added to the `sessions` field.
+    pub fn append(&mut self, session: Session) {
+        self.sessions.push(session);
+    }
+
     /// Converts the struct to a string JSON object.
     ///
     /// ## Returns
@@ -141,6 +149,21 @@ impl SessionList {
     /// The json string converted to a `SessionList` struct.
     pub fn from_json(input: &str) -> Option<Self> {
         serde_json::from_str(input).ok()
+    }
+
+    /// Gets the total amount of minutes worked from all Session instances
+    /// in `sessions`.
+    ///
+    /// ## Returns
+    /// The total amount of minutes worked from all Session instances in
+    /// `sessions` field.
+    pub fn total_work_minutes(&self) -> u64 {
+        let mut total: u64 = 0;
+        for session in self.sessions.clone() {
+            total += session.work_time as u64;
+        }
+
+        total
     }
 }
 

@@ -1,9 +1,14 @@
+use chrono::Utc;
 use indicatif::{ProgressBar, ProgressStyle};
 use rodio::{source::Source, Decoder, OutputStream};
 use std::fs::File;
 use std::io::BufReader;
 use std::thread;
 use std::time::Duration;
+
+use crate::storage::Session;
+use crate::storage::SessionList;
+use crate::storage::Storage;
 
 /// Represents the values of a timer, as well as the time worked in minutes.
 ///
@@ -26,11 +31,11 @@ pub struct Timer {
 
 impl Timer {
     /// Creates a new `Timer` instance with the specified work and break durations.
-    pub fn new(work_minutes: u64, break_minutes: u64) -> Timer {
+    pub fn new(work_minutes: u64, break_minutes: u64, total_worked_minutes: u64) -> Timer {
         Timer {
             work_minutes,
             break_minutes,
-            total_worked_minutes: 0,
+            total_worked_minutes,
         }
     }
 
@@ -64,7 +69,7 @@ impl Timer {
     }
 }
 
-pub fn pomodoro_work_timer(timer: &mut Timer) {
+pub fn pomodoro_work_timer(timer: &mut Timer, session_list: &mut SessionList) {
     // convert the input time to seconds
     let time_to_sec = &timer.work_minutes * 60;
 
@@ -88,6 +93,18 @@ pub fn pomodoro_work_timer(timer: &mut Timer) {
     let file = BufReader::new(File::open("./sounds/pomodoroFinish.mp3").unwrap());
     //decode sound file into a source
     let source = Decoder::new(file).unwrap();
+
+    let session = Session::new(
+        Some(Utc::now()),
+        timer.work_minutes as u32,
+        timer.break_minutes as u32,
+    );
+
+    let storage = Storage::new(None, "sessions.json".to_string());
+
+    session_list.append(session);
+
+    storage.write(None, session_list.to_json());
 
     println!("✅ Pomodoro Timer completed\n");
 
