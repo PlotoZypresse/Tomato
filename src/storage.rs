@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::prelude::*;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Session {
     #[serde(with = "ts_seconds")] // Converts to a format Serde can (de)serailize
     pub timestamp: DateTime<Utc>, // Has to be UTC, can be converted later
@@ -46,6 +46,10 @@ impl Session {
     pub fn to_json(&self) -> String {
         serde_json::to_string(&self).unwrap()
     }
+
+    pub fn from_json(string: &str) -> Self {
+        serde_json::from_str(string).unwrap()
+    }
 }
 
 impl Storage {
@@ -71,6 +75,27 @@ mod tests {
         assert_eq!(
             json,
             "{\"timestamp\":1326931200,\"work_time\":25,\"break_time\":5}"
+        );
+    }
+
+    #[test]
+    fn deserialize_session_from_json() {
+        let json = "{\"timestamp\":1326931200,\"work_time\":25,\"break_time\":5}";
+
+        let deserialized = Session::from_json(json);
+
+        let date: DateTime<Utc> = Utc
+            .with_ymd_and_hms(2012, 1, 19, 0, 0, 0)
+            .single()
+            .expect("Invalid date or time");
+
+        assert_eq!(
+            deserialized,
+            Session {
+                timestamp: date,
+                work_time: 25,
+                break_time: 5
+            }
         );
     }
 }
