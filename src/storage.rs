@@ -44,6 +44,12 @@ pub struct Session {
     pub break_time: u32,
 }
 
+/// Holds a list of Session instances.
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct SessionList {
+    sessions: Vec<Session>,
+}
+
 /// Holds the variable containing the path to the storage file.
 pub struct Storage {
     storage_file: String,
@@ -78,6 +84,7 @@ impl Session {
         }
     }
 
+    // NOTE: This might not be needed.
     /// Converts the Session instance to a JSON string.
     ///
     /// ## Returns
@@ -87,6 +94,7 @@ impl Session {
         serde_json::to_string(&self).unwrap()
     }
 
+    // NOTE: This might not be needed.
     /// Takes a JSON string and converts it to an instance of Session
     ///
     /// ## Returns
@@ -94,6 +102,45 @@ impl Session {
     /// * None if unsuccessfull
     pub fn from_json(string: &str) -> Option<Self> {
         serde_json::from_str(string).ok()
+    }
+}
+
+impl SessionList {
+    /// Initializes a new empty SessionList struct.
+    ///
+    /// ## Arguments
+    /// An Option data type containing a vector of Session instances.
+    ///
+    /// ## Returns
+    /// A SessionList instance containing:
+    /// * If `None`: An empty vector of Session instances initialized to `sessions`.
+    /// * If `Some(v)`: Given vector of Session instances initialized to `sessions`.
+    pub fn new(sessions: Option<Vec<Session>>) -> Self {
+        match sessions {
+            None => SessionList {
+                sessions: Vec::new(),
+            },
+            Some(v) => SessionList { sessions: v },
+        }
+    }
+
+    /// Converts the struct to a string JSON object.
+    ///
+    /// ## Returns
+    /// The struct as a string in a JSON format.
+    pub fn to_json(&self) -> String {
+        serde_json::to_string(&self).unwrap()
+    }
+
+    /// Converts from JSON String into a SessionList struct.
+    ///
+    /// ## Arguments
+    /// * input: The string input containing json of SessionList
+    ///
+    /// ## Returns
+    /// The json string converted to a `SessionList` struct.
+    pub fn from_json(input: &str) -> Option<Self> {
+        serde_json::from_str(input).ok()
     }
 }
 
@@ -117,6 +164,39 @@ impl Storage {
         }
     }
 
+    // NOTE: Might not be needed, unless we find a way to append
+    // that is easier and much more efficient than just rewriting.
+    /// Appends to `storage_file`.
+    ///
+    /// ## Returns
+    /// A Result value. Ok(()) if no problems occured, otherwise Err.
+    pub fn append(&self, folder: Option<String>, text: String) -> std::io::Result<()> {
+        if !folder_exists(folder.unwrap_or(".tomato".to_string())) {
+            let path = format!("{}/{}/", get_home_path(), self.folder);
+            match fs::create_dir(path) {
+                Ok(_) => (),
+                Err(v) => panic!("{}", v),
+            }
+        }
+
+        // File::create creates a file if it does not exist.
+        // If it does exist, it truncates the file.
+        let mut file = OpenOptions::new()
+            .append(true)
+            .create(true)
+            .open(self.storage_file.clone())?;
+
+        let byte_amount = file.write(text.as_bytes())?;
+
+        if byte_amount != text.len() {
+            panic!("Something went wrong while writing to file. Written amount not equal to amount which should have been written.");
+        }
+
+        file.flush().unwrap();
+
+        Ok(())
+    }
+
     /// Writes to `storage_file`.
     ///
     /// ## Returns
@@ -132,10 +212,7 @@ impl Storage {
 
         // File::create creates a file if it does not exist.
         // If it does exist, it truncates the file.
-        let mut file = OpenOptions::new()
-            .append(true)
-            .create(true)
-            .open(self.storage_file.clone())?;
+        let mut file = File::create(self.storage_file.clone())?;
 
         let byte_amount = file.write(text.as_bytes())?;
 
@@ -240,5 +317,38 @@ mod tests {
             Ok(_) => (),
             Err(v) => panic!("{}", v),
         }
+    }
+
+    #[test]
+    fn serialize_deserialize_sessionlist() {
+        let sessions = vec![
+            Session::new(None, 25, 5),
+            Session::new(
+                Some(
+                    Utc.with_ymd_and_hms(2020, 12, 1, 0, 0, 0)
+                        .single()
+                        .expect("Failed to parse fixed date."),
+                ),
+                10, // work minutes
+                5,
+            ), // break minutes
+            Session::new(
+                Some(
+                    Utc.with_ymd_and_hms(2025, 1, 11, 20, 43, 50)
+                        .single()
+                        .expect("Failed to parse fixed date."),
+                ),
+                1, // work minutes
+                1, // break minutes
+            ),
+        ];
+
+        let list = SessionList::new(Some(sessions));
+
+        let json = list.to_json();
+
+        let deserialize = SessionList::from_json(&json).unwrap();
+
+        assert_eq!(deserialize, list);
     }
 }
