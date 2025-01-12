@@ -104,7 +104,10 @@ pub fn pomodoro_work_timer(timer: &mut Timer, session_list: &mut SessionList) {
 
     session_list.append(session);
 
-    storage.write(None, session_list.to_json());
+    match storage.write(None, session_list.to_json()) {
+        Ok(_) => (),
+        Err(v) => panic!("There was an error while writing to file. {}", v),
+    }
 
     println!("✅ Pomodoro Timer completed\n");
 

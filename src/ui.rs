@@ -14,9 +14,9 @@ fn load_sessions() -> SessionList {
 
     let contents = storage
         .read()
-        .expect(&format!("Could not read the contents of {}", file_name));
+        .unwrap_or_else(|_| panic!("Could not read the contents of {}", file_name));
 
-    if contents.len() <= 0 {
+    if contents.is_empty() {
         return SessionList::new(None);
     }
 
