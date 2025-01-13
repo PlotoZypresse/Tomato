@@ -114,11 +114,11 @@ fn ui(session_list: &mut SessionList) -> u64 {
                 .unwrap();
 
                 println!("\nStarting Pomodoro timer...");
-                timers::pomodoro_work_timer(&mut timer, session_list);
+                timers::pomodoro_work_timer(&mut timer);
                 println!("...Press Enter to start the break...");
                 let mut dummy = String::new();
                 io::stdin().read_line(&mut dummy).unwrap();
-                timers::pomodoro_break_timer(&timer);
+                timers::pomodoro_break_timer(&timer, session_list);
                 println!("\nPress Enter to return to the menu.");
                 let mut dummy = String::new();
                 io::stdin().read_line(&mut dummy).unwrap();

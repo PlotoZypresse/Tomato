@@ -69,7 +69,7 @@ impl Timer {
     }
 }
 
-pub fn pomodoro_work_timer(timer: &mut Timer, session_list: &mut SessionList) {
+pub fn pomodoro_work_timer(timer: &mut Timer) {
     // convert the input time to seconds
     let time_to_sec = &timer.work_minutes * 60;
 
@@ -104,7 +104,7 @@ pub fn pomodoro_work_timer(timer: &mut Timer, session_list: &mut SessionList) {
     std::thread::sleep(std::time::Duration::from_secs(2));
 }
 
-pub fn pomodoro_break_timer(timer: &Timer) {
+pub fn pomodoro_break_timer(timer: &Timer, session_list: &mut SessionList) {
     let break_time_sec = timer.work_minutes * 60;
 
     let bar = ProgressBar::new(break_time_sec);
