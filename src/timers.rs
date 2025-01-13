@@ -94,21 +94,6 @@ pub fn pomodoro_work_timer(timer: &mut Timer, session_list: &mut SessionList) {
     //decode sound file into a source
     let source = Decoder::new(file).unwrap();
 
-    let session = Session::new(
-        Some(Utc::now()),
-        timer.work_minutes as u32,
-        timer.break_minutes as u32,
-    );
-
-    let storage = Storage::new(None, "sessions.json".to_string());
-
-    session_list.append(session);
-
-    match storage.write(None, session_list.to_json()) {
-        Ok(_) => (),
-        Err(v) => panic!("There was an error while writing to file. {}", v),
-    }
-
     println!("✅ Pomodoro Timer completed\n");
 
     //increment the time worked
@@ -143,6 +128,22 @@ pub fn pomodoro_break_timer(timer: &Timer) {
     let source = Decoder::new(file).unwrap();
     //Play the sound
     let _ = stream_handle.play_raw(source.convert_samples());
+
+    let session = Session::new(
+        Some(Utc::now()),
+        timer.work_minutes as u32,
+        timer.break_minutes as u32,
+    );
+
+    let storage = Storage::new(None, "sessions.json".to_string());
+
+    session_list.append(session);
+
+    match storage.write(None, session_list.to_json()) {
+        Ok(_) => (),
+        Err(v) => panic!("There was an error while writing to file. {}", v),
+    }
+
     println!("✅ Break is completed\n");
 
     std::thread::sleep(std::time::Duration::from_secs(2));
