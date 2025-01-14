@@ -1,11 +1,9 @@
 use chrono::Utc;
 use indicatif::{ProgressBar, ProgressStyle};
-use rodio::{source::Source, Decoder, OutputStream};
-use std::fs::File;
-use std::io::BufReader;
 use std::thread;
 use std::time::Duration;
 
+use crate::sound::*;
 use crate::storage::Session;
 use crate::storage::SessionList;
 use crate::storage::Storage;
@@ -87,21 +85,12 @@ pub fn pomodoro_work_timer(timer: &mut Timer) {
         bar.inc(1);
     }
 
-    // Get an output stream handle to the default sound device
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    // load the sound file
-    let file = BufReader::new(File::open("./sounds/pomodoroFinish.mp3").unwrap());
-    //decode sound file into a source
-    let source = Decoder::new(file).unwrap();
-
     println!("✅ Pomodoro Timer completed\n");
+
+    play_sound(POMODORO_FINISH.to_vec(), 2);
 
     //increment the time worked
     timer.add_worked_minutes(timer.work_minutes);
-
-    //Play the sound
-    let _ = stream_handle.play_raw(source.convert_samples());
-    std::thread::sleep(std::time::Duration::from_secs(2));
 }
 
 pub fn pomodoro_break_timer(timer: &Timer, session_list: &mut SessionList) {
@@ -120,14 +109,6 @@ pub fn pomodoro_break_timer(timer: &Timer, session_list: &mut SessionList) {
         thread::sleep(Duration::from_secs(1));
         bar.inc(1);
     }
-    // Get an output stream handle to the default sound device
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    // load the sound file
-    let file = BufReader::new(File::open("./sounds/breakDone.mp3").unwrap());
-    //decode sound file into a source
-    let source = Decoder::new(file).unwrap();
-    //Play the sound
-    let _ = stream_handle.play_raw(source.convert_samples());
 
     let session = Session::new(
         Some(Utc::now()),
@@ -146,5 +127,5 @@ pub fn pomodoro_break_timer(timer: &Timer, session_list: &mut SessionList) {
 
     println!("✅ Break is completed\n");
 
-    std::thread::sleep(std::time::Duration::from_secs(2));
+    play_sound(BREAK_FINISH.to_vec(), 2);
 }
