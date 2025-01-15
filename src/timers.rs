@@ -71,13 +71,22 @@ pub fn pomodoro_work_timer(timer: &mut Timer) {
     let bar = ProgressBar::new(time_to_sec);
     bar.set_style(
         ProgressStyle::with_template(
-            "{spinner:.cyan} 🍅 [Time Remaining {bar:.40.cyan/gray}] {pos}/{len}s",
+            "{spinner:.cyan} 🍅 [Time Remaining {bar:.40.cyan/gray}] {msg}",
         )
         .unwrap()
         .progress_chars("█▓▒░"),
     );
 
-    for _ in 0..time_to_sec {
+    for elapsed in 0..time_to_sec {
+        let remaining = time_to_sec - elapsed;
+
+        let min = remaining / 60;
+        let sec = remaining % 60;
+
+        let min_formatted = format!("{:02}", min);
+        let sec_formatted = format!("{:02}", sec);
+
+        bar.set_message(format!("{min_formatted}:{sec_formatted}"));
         thread::sleep(Duration::from_secs(1));
         bar.inc(1);
     }
@@ -105,16 +114,26 @@ pub fn pomodoro_break_timer(timer: &Timer) {
     let bar = ProgressBar::new(break_time_sec);
     bar.set_style(
         ProgressStyle::with_template(
-            "{spinner:.cyan} 🍅 [Break Remaining {bar:.40.cyan/gray}] {pos}/{len}s",
+            "{spinner:.cyan} 🍅 [Time Remaining {bar:.40.cyan/gray}] {msg}",
         )
         .unwrap()
         .progress_chars("█▓▒░"),
     );
 
-    for _ in 0..break_time_sec {
+    for elapsed in 0..break_time_sec {
+        let remaining = break_time_sec - elapsed;
+
+        let min = remaining / 60;
+        let sec = remaining % 60;
+
+        let min_formatted = format!("{:02}", min);
+        let sec_formatted = format!("{:02}", sec);
+
+        bar.set_message(format!("{min_formatted}:{sec_formatted}"));
         thread::sleep(Duration::from_secs(1));
         bar.inc(1);
     }
+
     // Get an output stream handle to the default sound device
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     // load the sound file
