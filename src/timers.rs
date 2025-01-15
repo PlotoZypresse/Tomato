@@ -94,7 +94,7 @@ pub fn pomodoro_work_timer(timer: &mut Timer) {
 }
 
 pub fn pomodoro_break_timer(timer: &Timer, session_list: &mut SessionList) {
-    let break_time_sec = timer.work_minutes * 60;
+    let break_time_sec = timer.break_minutes * 60;
 
     let bar = ProgressBar::new(break_time_sec);
     bar.set_style(
