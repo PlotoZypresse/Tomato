@@ -1,9 +1,12 @@
+use chrono::Utc;
 use indicatif::{ProgressBar, ProgressStyle};
-use rodio::{source::Source, Decoder, OutputStream};
-use std::fs::File;
-use std::io::BufReader;
 use std::thread;
 use std::time::Duration;
+
+use crate::sound::*;
+use crate::storage::Session;
+use crate::storage::SessionList;
+use crate::storage::Storage;
 
 /// Represents the values of a timer, as well as the time worked in minutes.
 ///
@@ -26,11 +29,11 @@ pub struct Timer {
 
 impl Timer {
     /// Creates a new `Timer` instance with the specified work and break durations.
-    pub fn new(work_minutes: u64, break_minutes: u64) -> Timer {
+    pub fn new(work_minutes: u64, break_minutes: u64, total_worked_minutes: u64) -> Timer {
         Timer {
             work_minutes,
             break_minutes,
-            total_worked_minutes: 0,
+            total_worked_minutes,
         }
     }
 
@@ -91,25 +94,16 @@ pub fn pomodoro_work_timer(timer: &mut Timer) {
         bar.inc(1);
     }
 
-    // Get an output stream handle to the default sound device
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    // load the sound file
-    let file = BufReader::new(File::open("./sounds/pomodoroFinish.mp3").unwrap());
-    //decode sound file into a source
-    let source = Decoder::new(file).unwrap();
-
     println!("✅ Pomodoro Timer completed\n");
+
+    play_sound(POMODORO_FINISH.to_vec(), 2);
 
     //increment the time worked
     timer.add_worked_minutes(timer.work_minutes);
-
-    //Play the sound
-    let _ = stream_handle.play_raw(source.convert_samples());
-    std::thread::sleep(std::time::Duration::from_secs(2));
 }
 
-pub fn pomodoro_break_timer(timer: &Timer) {
-    let break_time_sec = timer.work_minutes * 60;
+pub fn pomodoro_break_timer(timer: &Timer, session_list: &mut SessionList) {
+    let break_time_sec = timer.break_minutes * 60;
 
     let bar = ProgressBar::new(break_time_sec);
     bar.set_style(
@@ -134,15 +128,22 @@ pub fn pomodoro_break_timer(timer: &Timer) {
         bar.inc(1);
     }
 
-    // Get an output stream handle to the default sound device
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    // load the sound file
-    let file = BufReader::new(File::open("./sounds/breakDone.mp3").unwrap());
-    //decode sound file into a source
-    let source = Decoder::new(file).unwrap();
-    //Play the sound
-    let _ = stream_handle.play_raw(source.convert_samples());
+    let session = Session::new(
+        Some(Utc::now()),
+        timer.work_minutes as u32,
+        timer.break_minutes as u32,
+    );
+
+    let storage = Storage::new(None, "sessions.json".to_string());
+
+    session_list.append(session);
+
+    match storage.write(None, session_list.to_json()) {
+        Ok(_) => (),
+        Err(v) => panic!("There was an error while writing to file. {}", v),
+    }
+  
     println!("✅ Break is completed\n");
 
-    std::thread::sleep(std::time::Duration::from_secs(2));
+    play_sound(BREAK_FINISH.to_vec(), 2);
 }

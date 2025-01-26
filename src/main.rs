@@ -1,4 +1,6 @@
 mod menu;
+mod sound;
+mod storage;
 mod timers;
 mod ui;
 
