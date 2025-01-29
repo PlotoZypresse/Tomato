@@ -142,7 +142,7 @@ pub fn pomodoro_break_timer(timer: &Timer, session_list: &mut SessionList) {
         Ok(_) => (),
         Err(v) => panic!("There was an error while writing to file. {}", v),
     }
-  
+
     println!("✅ Break is completed\n");
 
     play_sound(BREAK_FINISH.to_vec(), 2);
