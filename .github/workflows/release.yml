@@ -1,0 +1,23 @@
+# Builds releases for Linux
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache Dependencies
+        uses: Swatinem/rust-cache@v2
+      - name: Build for Linux
+        run: cargo build --release
+      - name: Upload Linux Binary
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/release/tomato
