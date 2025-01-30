@@ -3,6 +3,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use std::thread;
 use std::time::Duration;
 
+use crate::settings::Settings;
 use crate::sound::*;
 use crate::storage::Session;
 use crate::storage::SessionList;
