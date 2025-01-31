@@ -9,8 +9,8 @@ use chrono::serde::ts_seconds; // Allows for seralization with Chrono Timestamps
 use chrono::{DateTime, Utc};
 use home::home_dir;
 use serde::{Deserialize, Serialize};
+use std::fs;
 use std::fs::File;
-use std::fs::{self, OpenOptions};
 use std::io::prelude::*;
 use std::path::Path;
 
@@ -90,6 +90,7 @@ impl Session {
     /// ## Returns
     /// A string containing a JSON formatted string containing the informations
     /// contained within the instance.
+    #[allow(dead_code)]
     pub fn to_json(&self) -> String {
         serde_json::to_string(&self).unwrap()
     }
@@ -100,6 +101,7 @@ impl Session {
     /// ## Returns
     /// * Some(Session) if successfull
     /// * None if unsuccessfull
+    #[allow(dead_code)]
     pub fn from_json(string: &str) -> Option<Self> {
         serde_json::from_str(string).ok()
     }
@@ -187,39 +189,6 @@ impl Storage {
         }
     }
 
-    // NOTE: Might not be needed, unless we find a way to append
-    // that is easier and much more efficient than just rewriting.
-    /// Appends to `storage_file`.
-    ///
-    /// ## Returns
-    /// A Result value. Ok(()) if no problems occured, otherwise Err.
-    pub fn append(&self, folder: Option<String>, text: String) -> std::io::Result<()> {
-        if !folder_exists(folder.unwrap_or(".tomato".to_string())) {
-            let path = format!("{}/{}/", get_home_path(), self.folder);
-            match fs::create_dir(path) {
-                Ok(_) => (),
-                Err(v) => panic!("{}", v),
-            }
-        }
-
-        // File::create creates a file if it does not exist.
-        // If it does exist, it truncates the file.
-        let mut file = OpenOptions::new()
-            .append(true)
-            .create(true)
-            .open(self.storage_file.clone())?;
-
-        let byte_amount = file.write(text.as_bytes())?;
-
-        if byte_amount != text.len() {
-            panic!("Something went wrong while writing to file. Written amount not equal to amount which should have been written.");
-        }
-
-        file.flush().unwrap();
-
-        Ok(())
-    }
-
     /// Writes to `storage_file`.
     ///
     /// ## Returns
@@ -248,12 +217,11 @@ impl Storage {
         Ok(())
     }
 
-    // TODO: If this should only be called in tests, should it maybe only be
-    // defined there?
     /// Removes `storage_file`. This should only be called in tests.
     ///
     /// ## Returns
     /// A Result value. Ok(()) if successfully deleted file, err otherwise.
+    #[allow(dead_code)]
     fn remove_file(&self) -> std::io::Result<()> {
         fs::remove_file(self.storage_file.clone())?;
         Ok(())

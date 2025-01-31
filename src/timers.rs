@@ -38,23 +38,9 @@ impl Timer {
         }
     }
 
-    /// Resets the total number of worked minutes for the current timer.
-    pub fn reset(&mut self) {
-        self.total_worked_minutes = 0;
-    }
-
     /// Adds a number of minutes to the total number of minutes worked.
     pub fn add_worked_minutes(&mut self, minutes: u64) {
         self.total_worked_minutes += minutes;
-    }
-
-    /// Returns the current distribution of work and break minutes, along with
-    /// the total number of minutes worked, formatted in a `String`.
-    pub fn display(&self) -> String {
-        format!(
-            "Work: {}m, Break: {}m, Total Worked: {}m",
-            self.work_minutes, self.break_minutes, self.total_worked_minutes
-        )
     }
 
     /// Sets the work minutes to the amount specified in the argument.
