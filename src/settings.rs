@@ -9,7 +9,7 @@ pub const SETTINGS_VERSION: &str = "0.1";
 /// These settings give persistence between sessions, such as the amount of
 /// time the user should work, as well as the amount of time the user should
 /// have a break.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Settings {
     // Once new features are added, the version will increment. Thus, breaking
     // changes can be mitigated, as to not cause a disaster.
@@ -47,5 +47,21 @@ impl Settings {
     /// deserialized. Otherwise, it returns `None`.
     pub fn from_json(string: &str) -> Option<Self> {
         serde_json::from_str(string).ok()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn serialize_settings_to_json_and_back() {
+        let settings = Settings::new(25, 5);
+
+        let json_str = settings.to_json();
+
+        let deserialized_settings = Settings::from_json(&json_str).expect("Invalid JSON");
+
+        assert_eq!(settings, deserialized_settings);
     }
 }
