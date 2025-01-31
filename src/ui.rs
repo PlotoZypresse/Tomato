@@ -38,7 +38,13 @@ fn load_settings() -> Settings {
 
     let contents = storage.read().unwrap_or_else(|_| {
         let settings = Settings::new(25, 5);
-        storage.write(None, settings.to_json());
+        match storage.write(None, settings.to_json()) {
+            Ok(_) => (),
+            Err(v) => panic!(
+                "An error occured while writing the settings to the settings file: {}",
+                v
+            ),
+        }
 
         format!(
             "Could not read the contents of {}, creating a new file.",
@@ -50,9 +56,7 @@ fn load_settings() -> Settings {
         return Settings::new(25, 5);
     }
 
-    let settings = Settings::from_json(&contents).expect("Could not parse the contents of file.");
-
-    settings
+    Settings::from_json(&contents).expect("Could not parse the contents of file.")
 }
 
 pub fn ui_loop() {

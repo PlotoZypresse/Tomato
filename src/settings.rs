@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use serde_json;
 
 pub const SETTINGS_VERSION: &str = "0.1";
 
@@ -30,12 +29,11 @@ impl Settings {
     /// which is set in the `SETTINGS_VERSION` const. As well as the break
     /// and work time specified in the arguments.
     pub fn new(work_time: u64, break_time: u64) -> Self {
-        let settings = Self {
+        Self {
             version: SETTINGS_VERSION.to_string(),
             work_time,
             break_time,
-        };
-        settings
+        }
     }
 
     /// Using serde, converts a the `Session` instance to a string.
