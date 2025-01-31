@@ -1,5 +1,6 @@
 use crate::{
     menu,
+    settings::Settings,
     storage::{SessionList, Storage},
     timers::{self, Timer},
 };
@@ -29,11 +30,41 @@ fn load_sessions() -> SessionList {
     sessions
 }
 
+fn load_settings() -> Settings {
+    let folder = String::from(".tomato");
+    let file_name = String::from("settings.json");
+
+    let storage = Storage::new(Some(folder), file_name.clone());
+
+    let contents = storage.read().unwrap_or_else(|_| {
+        let settings = Settings::new(25, 5);
+        match storage.write(None, settings.to_json()) {
+            Ok(_) => (),
+            Err(v) => panic!(
+                "An error occured while writing the settings to the settings file: {}",
+                v
+            ),
+        }
+
+        format!(
+            "Could not read the contents of {}, creating a new file.",
+            file_name
+        )
+    });
+
+    if contents.is_empty() {
+        return Settings::new(25, 5);
+    }
+
+    Settings::from_json(&contents).expect("Could not parse the contents of file.")
+}
+
 pub fn ui_loop() {
     let mut sessions = load_sessions();
+    let mut settings = load_settings();
 
     loop {
-        if ui(&mut sessions) == 9 {
+        if ui(&mut sessions, &mut settings) == 9 {
             break;
         }
     }
@@ -56,7 +87,7 @@ fn get_number_from_input() -> u64 {
     }
 }
 
-fn user_input(timer: &mut Timer) {
+fn user_input(timer: &mut Timer, settings: &mut Settings) {
     // time input for timer time
     println!("How long should the Pomodoro timer last?");
     println!("Please input in minutes: ");
@@ -69,17 +100,24 @@ fn user_input(timer: &mut Timer) {
 
     let input_break: u64 = get_number_from_input();
 
-    timer.work_minutes = input_work;
-    timer.break_minutes = input_break;
-
     timer.set_work_minutes(input_work);
     timer.set_break_minutes(input_break);
+
+    let file_name = String::from("settings.json");
+    let settings_storage = Storage::new(None, file_name);
+
+    settings.work_time = input_work;
+    settings.break_time = input_break;
+
+    settings_storage
+        .write(None, settings.to_json())
+        .expect("Something went wrong while trying to write to settings.json");
 }
 
-fn ui(session_list: &mut SessionList) -> u64 {
+fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
     let total_minutes = session_list.total_work_minutes();
 
-    let mut timer = Timer::new(25, 5, total_minutes);
+    let mut timer = Timer::new(settings.work_time, settings.break_time, total_minutes);
 
     loop {
         menu::print_menu();
@@ -102,7 +140,7 @@ fn ui(session_list: &mut SessionList) -> u64 {
         match input {
             1 => {
                 //time_tup =
-                user_input(&mut timer);
+                user_input(&mut timer, settings);
                 println!("Work and break timers set.\n");
             }
             2 => {
