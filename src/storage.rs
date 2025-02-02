@@ -161,7 +161,7 @@ impl SessionList {
     /// `sessions` field.
     pub fn total_work_minutes(&self) -> u64 {
         let mut total: u64 = 0;
-        for session in self.sessions.clone() {
+        for session in &self.sessions {
             total += session.work_time as u64;
         }
 
