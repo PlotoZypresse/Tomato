@@ -14,6 +14,8 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 
+use crate::json_serializable::JsonSerializable;
+
 /// Using the `home` crate, finds the home folder for the current user.
 ///
 /// ## Returns
@@ -56,6 +58,8 @@ pub struct Storage {
     folder: String,
 }
 
+impl JsonSerializable for Session {}
+
 impl Session {
     /// Creates a new instance of the Session struct.
     ///
@@ -83,29 +87,9 @@ impl Session {
             },
         }
     }
-
-    // NOTE: This might not be needed.
-    /// Converts the Session instance to a JSON string.
-    ///
-    /// ## Returns
-    /// A string containing a JSON formatted string containing the informations
-    /// contained within the instance.
-    #[allow(dead_code)]
-    pub fn to_json(&self) -> String {
-        serde_json::to_string(&self).unwrap()
-    }
-
-    // NOTE: This might not be needed.
-    /// Takes a JSON string and converts it to an instance of Session
-    ///
-    /// ## Returns
-    /// * Some(Session) if successfull
-    /// * None if unsuccessfull
-    #[allow(dead_code)]
-    pub fn from_json(string: &str) -> Option<Self> {
-        serde_json::from_str(string).ok()
-    }
 }
+
+impl JsonSerializable for SessionList {}
 
 impl SessionList {
     /// Initializes a new empty SessionList struct.
@@ -132,25 +116,6 @@ impl SessionList {
     /// * session: A Session instance to be added to the `sessions` field.
     pub fn append(&mut self, session: Session) {
         self.sessions.push(session);
-    }
-
-    /// Converts the struct to a string JSON object.
-    ///
-    /// ## Returns
-    /// The struct as a string in a JSON format.
-    pub fn to_json(&self) -> String {
-        serde_json::to_string(&self).unwrap()
-    }
-
-    /// Converts from JSON String into a SessionList struct.
-    ///
-    /// ## Arguments
-    /// * input: The string input containing json of SessionList
-    ///
-    /// ## Returns
-    /// The json string converted to a `SessionList` struct.
-    pub fn from_json(input: &str) -> Option<Self> {
-        serde_json::from_str(input).ok()
     }
 
     /// Gets the total amount of minutes worked from all Session instances
