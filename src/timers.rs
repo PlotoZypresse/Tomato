@@ -4,6 +4,7 @@ use std::thread;
 use std::time::Duration;
 
 use crate::json_serializable::JsonSerializable;
+use crate::notify;
 use crate::sound::*;
 use crate::storage::Session;
 use crate::storage::SessionList;
@@ -82,6 +83,8 @@ pub fn pomodoro_work_timer(timer: &mut Timer) {
     }
 
     println!("✅ Pomodoro Timer completed\n");
+
+    notify::send_notification();
 
     play_sound(POMODORO_FINISH.to_vec(), 2);
 
