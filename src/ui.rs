@@ -18,11 +18,7 @@ fn load_sessions() -> SessionList {
         return SessionList::new(None);
     }
 
-    // Load from storage.
-    let sessions =
-        SessionList::from_json(&contents).expect("Could not parse the contents of file.");
-
-    sessions
+    SessionList::from_json(&contents).expect("Could not parse the contents of file.")
 }
 
 pub fn ui_loop() {
