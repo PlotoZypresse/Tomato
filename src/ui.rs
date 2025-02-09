@@ -38,11 +38,7 @@ fn load_settings() -> Settings {
                 v
             ),
         }
-
-        format!(
-            "Could not read the contents of {}, creating a new file.",
-            file_name
-        )
+        "{}".to_string()
     });
 
     if contents.is_empty() {
