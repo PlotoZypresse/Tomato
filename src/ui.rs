@@ -2,7 +2,7 @@ use crate::{
     json_serializable::JsonSerializable,
     menu,
     settings::Settings,
-    storage::{SessionList, Storage},
+    storage::{Session, SessionList, Storage},
     timers::{self, Timer},
 };
 use crossterm::{cursor, execute, terminal};
@@ -17,10 +17,10 @@ fn load_sessions() -> SessionList {
     let contents = storage.read().unwrap_or_else(|_| "ERR".to_string());
 
     if contents.is_empty() || contents == "ERR" {
-        return SessionList::new(None);
+        SessionList::new(None)
+    } else {
+        SessionList::from_json(&contents).expect("Could not parse the contents of file.")
     }
-
-    SessionList::from_json(&contents).expect("Could not parse the contents of file.")
 }
 
 fn load_settings() -> Settings {
@@ -41,11 +41,11 @@ fn load_settings() -> Settings {
         "{}".to_string()
     });
 
-    if contents.is_empty() {
-        return Settings::new(25, 5);
+    if contents.is_empty() || contents == "{}" {
+        Settings::new(25, 5)
+    } else {
+        Settings::from_json(&contents).expect("Could not parse the contents of file.")
     }
-
-    Settings::from_json(&contents).expect("Could not parse the contents of file.")
 }
 
 pub fn ui_loop() {
