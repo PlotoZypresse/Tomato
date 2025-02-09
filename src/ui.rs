@@ -2,7 +2,7 @@ use crate::{
     json_serializable::JsonSerializable,
     menu,
     settings::Settings,
-    storage::{Session, SessionList, Storage},
+    storage::{SessionList, Storage},
     timers::{self, Timer},
 };
 use crossterm::{cursor, execute, terminal};
