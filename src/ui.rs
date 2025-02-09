@@ -12,11 +12,9 @@ fn load_sessions() -> SessionList {
 
     let storage = Storage::new(Some(folder), file_name.clone());
 
-    let contents = storage
-        .read()
-        .unwrap_or_else(|_| panic!("Could not read the contents of {}", file_name));
+    let contents = storage.read().unwrap_or_else(|_| "ERR".to_string());
 
-    if contents.is_empty() {
+    if contents.is_empty() || contents == "ERR" {
         return SessionList::new(None);
     }
 
