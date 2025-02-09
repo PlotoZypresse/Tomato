@@ -3,6 +3,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use std::thread;
 use std::time::Duration;
 
+use crate::json_serializable::JsonSerializable;
 use crate::sound::*;
 use crate::storage::Session;
 use crate::storage::SessionList;
