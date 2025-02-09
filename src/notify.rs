@@ -2,8 +2,8 @@ use notify_rust::Notification;
 
 pub fn send_notification() {
     let _ = Notification::new()
-        .summary("Test1")
-        .body("Test2")
-        .icon("test")
+        .summary("Work is done!!")
+        .body("Well done being productive")
+        .icon("tomato.jpeg")
         .show();
 }
