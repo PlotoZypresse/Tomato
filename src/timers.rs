@@ -84,7 +84,7 @@ pub fn pomodoro_work_timer(timer: &mut Timer) {
 
     println!("✅ Pomodoro Timer completed\n");
 
-    notify::send_notification();
+    notify::send_notification_work();
 
     play_sound(POMODORO_FINISH.to_vec(), 2);
 
@@ -134,6 +134,8 @@ pub fn pomodoro_break_timer(timer: &Timer, session_list: &mut SessionList) {
     }
 
     println!("✅ Break is completed\n");
+
+    notify::send_notification_break();
 
     play_sound(BREAK_FINISH.to_vec(), 2);
 }
