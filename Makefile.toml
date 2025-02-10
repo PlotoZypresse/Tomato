@@ -1,7 +1,10 @@
-[tasks.clean]
-description = "Clean the project"
-command = "cargo"
-args = ["clean"]
+[tasks.clean-coverage]
+description = "Clean the project and remove extra coverage files"
+script = [
+    "cargo clean",
+    "rm -f profile-*",
+    "rm -rf coverage"
+]
 
 [tasks.run-tests]
 description = "Run tests with coverage instrumentation"
@@ -27,4 +30,4 @@ args = [
 
 [tasks.coverage-grcov]
 description = "Run full coverage process (clean, test, and generate grcov report)"
-dependencies = ["clean", "run-tests", "generate-coverage"]
+dependencies = ["clean-coverage", "run-tests", "generate-coverage"]
