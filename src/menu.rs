@@ -2,7 +2,9 @@ use crossterm::style::Stylize;
 use crossterm::{cursor, execute, terminal};
 use std::io::{self, Write};
 
-pub fn print_menu() {
+use crate::settings::Settings;
+
+pub fn print_menu(settings: &mut Settings) {
     execute!(
         io::stdout(),
         terminal::Clear(terminal::ClearType::All),
@@ -28,7 +30,10 @@ pub fn print_menu() {
 
     // Menu options
     println!("1. Set time for work and break time");
-    println!("2. Start timer (Default 25/5)");
+    println!(
+        "2. Start timer ({}/{})",
+        settings.work_time, settings.break_time
+    );
     println!("3. Stats");
     println!("{}", "9. Exit".red());
 
