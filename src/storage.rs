@@ -182,16 +182,6 @@ impl Storage {
         Ok(())
     }
 
-    /// Removes `storage_file`. This should only be called in tests.
-    ///
-    /// ## Returns
-    /// A Result value. Ok(()) if successfully deleted file, err otherwise.
-    #[allow(dead_code)]
-    fn remove_file(&self) -> std::io::Result<()> {
-        fs::remove_file(self.storage_file.clone())?;
-        Ok(())
-    }
-
     /// Reads from `storage_file`.
     ///
     /// ## Returns
@@ -211,6 +201,15 @@ impl Storage {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Removes `storage_file`. This should only be called in tests.
+    ///
+    /// ## Returns
+    /// A Result value. Ok(()) if successfully deleted file, err otherwise.
+    fn remove_file(storage: Storage) -> std::io::Result<()> {
+        fs::remove_file(storage.storage_file)?;
+        Ok(())
+    }
 
     #[test]
     fn serialize_session_to_json_and_back() {
@@ -269,7 +268,7 @@ mod tests {
             Err(v) => panic!("{}", v),
         }
 
-        match storage.remove_file() {
+        match remove_file(storage) {
             Ok(_) => (),
             Err(v) => panic!("{}", v),
         }
