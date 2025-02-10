@@ -15,6 +15,24 @@ pub struct Settings {
     pub version: String,
     pub work_time: u64,
     pub break_time: u64,
+    pub notification: Notifications,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct Notifications {
+    pub enable: bool,
+    pub work_msg: String,
+    pub break_msg: String,
+}
+
+impl Default for Notifications {
+    fn default() -> Self {
+        Notifications {
+            enable: true,
+            work_msg: "Good job your work is done. Take a break".to_string(),
+            break_msg: "Break is done. Get back to work".to_string(),
+        }
+    }
 }
 
 impl Settings {
@@ -28,11 +46,12 @@ impl Settings {
     /// A new `Settings` instance where the version of the settings, is the one
     /// which is set in the `SETTINGS_VERSION` const. As well as the break
     /// and work time specified in the arguments.
-    pub fn new(work_time: u64, break_time: u64) -> Self {
+    pub fn new(work_time: u64, break_time: u64, notification: Notifications) -> Self {
         Self {
             version: SETTINGS_VERSION.to_string(),
             work_time,
             break_time,
+            notification,
         }
     }
 
@@ -54,7 +73,8 @@ mod tests {
 
     #[test]
     fn serialize_settings_to_json_and_back() {
-        let settings = Settings::new(25, 5);
+        let notification = Notifications::default();
+        let settings = Settings::new(25, 5, notification);
 
         let json_str = settings.to_json();
 
