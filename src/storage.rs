@@ -158,8 +158,8 @@ impl Storage {
     ///
     /// ## Returns
     /// A Result value. Ok(()) if no problems occured, otherwise Err.
-    pub fn write(&self, folder: Option<String>, text: String) -> std::io::Result<()> {
-        if !folder_exists(folder.unwrap_or(".tomato".to_string())) {
+    pub fn write(&self, text: String) -> std::io::Result<()> {
+        if !folder_exists(self.folder.clone()) {
             let path = format!("{}/{}/", get_home_path(), self.folder);
             match fs::create_dir(path) {
                 Ok(_) => (),
@@ -182,16 +182,6 @@ impl Storage {
         Ok(())
     }
 
-    /// Removes `storage_file`. This should only be called in tests.
-    ///
-    /// ## Returns
-    /// A Result value. Ok(()) if successfully deleted file, err otherwise.
-    #[allow(dead_code)]
-    fn remove_file(&self) -> std::io::Result<()> {
-        fs::remove_file(self.storage_file.clone())?;
-        Ok(())
-    }
-
     /// Reads from `storage_file`.
     ///
     /// ## Returns
@@ -203,14 +193,22 @@ impl Storage {
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
 
-        // TODO: Do we need Clone here?
-        Ok(contents.clone())
+        Ok(contents)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Removes `storage_file`. This should only be called in tests.
+    ///
+    /// ## Returns
+    /// A Result value. Ok(()) if successfully deleted file, err otherwise.
+    fn remove_file(storage: Storage) -> std::io::Result<()> {
+        fs::remove_file(storage.storage_file)?;
+        Ok(())
+    }
 
     #[test]
     fn serialize_session_to_json_and_back() {
@@ -259,7 +257,7 @@ mod tests {
 
         let write_value = String::from("Æether Åland Øndre");
 
-        match storage.write(Some(".tomato_test".to_string()), write_value.clone()) {
+        match storage.write(write_value.clone()) {
             Ok(_) => (),
             Err(v) => panic!("{}. Check path {}", v, expected_path),
         }
@@ -269,7 +267,7 @@ mod tests {
             Err(v) => panic!("{}", v),
         }
 
-        match storage.remove_file() {
+        match remove_file(storage) {
             Ok(_) => (),
             Err(v) => panic!("{}", v),
         }
