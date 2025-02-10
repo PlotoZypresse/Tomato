@@ -158,8 +158,8 @@ impl Storage {
     ///
     /// ## Returns
     /// A Result value. Ok(()) if no problems occured, otherwise Err.
-    pub fn write(&self, folder: Option<String>, text: String) -> std::io::Result<()> {
-        if !folder_exists(folder.unwrap_or(".tomato".to_string())) {
+    pub fn write(&self, text: String) -> std::io::Result<()> {
+        if !folder_exists(self.folder.clone()) {
             let path = format!("{}/{}/", get_home_path(), self.folder);
             match fs::create_dir(path) {
                 Ok(_) => (),
@@ -259,7 +259,7 @@ mod tests {
 
         let write_value = String::from("Æether Åland Øndre");
 
-        match storage.write(Some(".tomato_test".to_string()), write_value.clone()) {
+        match storage.write(write_value.clone()) {
             Ok(_) => (),
             Err(v) => panic!("{}. Check path {}", v, expected_path),
         }

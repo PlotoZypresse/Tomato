@@ -31,7 +31,7 @@ fn load_settings() -> Settings {
 
     let contents = storage.read().unwrap_or_else(|_| {
         let settings = Settings::new(25, 5);
-        match storage.write(None, settings.to_json()) {
+        match storage.write(settings.to_json()) {
             Ok(_) => (),
             Err(v) => panic!(
                 "An error occured while writing the settings to the settings file: {}",
@@ -99,7 +99,7 @@ fn user_input(timer: &mut Timer, settings: &mut Settings) {
     settings.break_time = input_break;
 
     settings_storage
-        .write(None, settings.to_json())
+        .write(settings.to_json())
         .expect("Something went wrong while trying to write to settings.json");
 }
 
