@@ -28,7 +28,7 @@ jobs:
 
       - name: Generate code coverage
         id: coverage
-        run: cargo llvm-cov --all-features --exclude register_derive_impl --workspace --no-fail-fast --lcov --output-path lcov.info
+        run: cargo llvm-cov --all-features --workspace --no-fail-fast --lcov --output-path lcov.info
         env:
           NODE_COVERALLS_DEBUG: true
 
