@@ -1,0 +1,31 @@
+
+[tasks.clean]
+description = "Clean the project"
+command = "cargo"
+args = ["clean"]
+
+[tasks.run-tests]
+description = "Run tests with coverage instrumentation"
+command = "cargo"
+args = ["test"]
+[tasks.run-tests.env]
+CARGO_TARGET_DIR = "target"
+RUSTFLAGS = "-C instrument-coverage"
+LLVM_PROFILE_FILE = "profile-%p-%m.profraw"
+
+[tasks.generate-coverage]
+description = "Generate HTML coverage report"
+command = "grcov"
+args = [
+    ".",
+    "--binary-path", "target/debug/deps",
+    "--source-dir", ".",
+    "--output-type", "html",
+    "--output-path", "coverage",
+    "--branch",
+    "--ignore-not-existing"
+]
+
+[tasks.coverage]
+description = "Run full coverage process (clean, test, and generate report)"
+dependencies = ["clean", "run-tests", "generate-coverage"]
