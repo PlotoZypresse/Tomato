@@ -109,7 +109,7 @@ fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
     let mut timer = Timer::new(settings.work_time, settings.break_time, total_minutes);
 
     loop {
-        menu::print_menu();
+        menu::print_menu(settings);
 
         // read user input
         let mut input = String::new();
