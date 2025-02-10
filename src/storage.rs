@@ -193,8 +193,7 @@ impl Storage {
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
 
-        // TODO: Do we need Clone here?
-        Ok(contents.clone())
+        Ok(contents)
     }
 }
 
