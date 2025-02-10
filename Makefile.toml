@@ -1,4 +1,3 @@
-
 [tasks.clean]
 description = "Clean the project"
 command = "cargo"
@@ -14,7 +13,7 @@ RUSTFLAGS = "-C instrument-coverage"
 LLVM_PROFILE_FILE = "profile-%p-%m.profraw"
 
 [tasks.generate-coverage]
-description = "Generate HTML coverage report"
+description = "Generate HTML coverage report using grcov"
 command = "grcov"
 args = [
     ".",
@@ -26,6 +25,6 @@ args = [
     "--ignore-not-existing"
 ]
 
-[tasks.coverage]
-description = "Run full coverage process (clean, test, and generate report)"
+[tasks.coverage-grcov]
+description = "Run full coverage process (clean, test, and generate grcov report)"
 dependencies = ["clean", "run-tests", "generate-coverage"]
