@@ -128,7 +128,7 @@ pub fn pomodoro_break_timer(timer: &Timer, session_list: &mut SessionList) {
 
     session_list.append(session);
 
-    match storage.write(None, session_list.to_json()) {
+    match storage.write(session_list.to_json()) {
         Ok(_) => (),
         Err(v) => panic!("There was an error while writing to file. {}", v),
     }

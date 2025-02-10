@@ -17,10 +17,10 @@ fn load_sessions() -> SessionList {
     let contents = storage.read().unwrap_or_else(|_| "ERR".to_string());
 
     if contents.is_empty() || contents == "ERR" {
-        return SessionList::new(None);
+        SessionList::new(None)
+    } else {
+        SessionList::from_json(&contents).expect("Could not parse the contents of file.")
     }
-
-    SessionList::from_json(&contents).expect("Could not parse the contents of file.")
 }
 
 fn load_settings() -> Settings {
@@ -31,7 +31,7 @@ fn load_settings() -> Settings {
 
     let contents = storage.read().unwrap_or_else(|_| {
         let settings = Settings::new(25, 5);
-        match storage.write(None, settings.to_json()) {
+        match storage.write(settings.to_json()) {
             Ok(_) => (),
             Err(v) => panic!(
                 "An error occured while writing the settings to the settings file: {}",
@@ -41,11 +41,11 @@ fn load_settings() -> Settings {
         "{}".to_string()
     });
 
-    if contents.is_empty() {
-        return Settings::new(25, 5);
+    if contents.is_empty() || contents == "{}" {
+        Settings::new(25, 5)
+    } else {
+        Settings::from_json(&contents).expect("Could not parse the contents of file.")
     }
-
-    Settings::from_json(&contents).expect("Could not parse the contents of file.")
 }
 
 pub fn ui_loop() {
@@ -99,7 +99,7 @@ fn user_input(timer: &mut Timer, settings: &mut Settings) {
     settings.break_time = input_break;
 
     settings_storage
-        .write(None, settings.to_json())
+        .write(settings.to_json())
         .expect("Something went wrong while trying to write to settings.json");
 }
 
@@ -109,7 +109,7 @@ fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
     let mut timer = Timer::new(settings.work_time, settings.break_time, total_minutes);
 
     loop {
-        menu::print_menu();
+        menu::print_menu(settings);
 
         // read user input
         let mut input = String::new();
