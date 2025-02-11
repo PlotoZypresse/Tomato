@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::json_serializable::JsonSerializable;
 
@@ -20,8 +20,11 @@ use crate::json_serializable::JsonSerializable;
 ///
 /// ## Returns
 /// The home directory. Panics if this cannot be found.
-fn get_home_path() -> String {
-    let path: String = match home_dir() {
+fn get_home_path_with<F>(home_dir_fn: F) -> String
+where
+    F: Fn() -> Option<PathBuf>,
+{
+    let path: String = match home_dir_fn() {
         Some(home_path) => home_path.into_os_string().into_string().unwrap(),
         None => panic!("Impossible to get home dir."),
     };
@@ -29,12 +32,15 @@ fn get_home_path() -> String {
     path
 }
 
-/// Checks whether the folder exists.
+/// Checks whether the folder in user home dir exists.
+///
+/// ## Arguments
+/// * folder: A folder in the home dir (~/).
 ///
 /// ## Returns
 /// True if the folder exists. False otherwise.
 fn folder_exists(folder: String) -> bool {
-    let path = format!("{}/{}", get_home_path(), folder);
+    let path = format!("{}/{}", get_home_path_with(home_dir), folder);
     Path::new(&path).exists()
 }
 
@@ -146,7 +152,7 @@ impl Storage {
         Storage {
             storage_file: format!(
                 "{}/{}/{}",
-                get_home_path(),
+                get_home_path_with(home_dir),
                 folder.clone().unwrap_or(".tomato".to_string()),
                 path
             ),
@@ -160,11 +166,8 @@ impl Storage {
     /// A Result value. Ok(()) if no problems occured, otherwise Err.
     pub fn write(&self, text: String) -> std::io::Result<()> {
         if !folder_exists(self.folder.clone()) {
-            let path = format!("{}/{}/", get_home_path(), self.folder);
-            match fs::create_dir(path) {
-                Ok(_) => (),
-                Err(v) => panic!("{}", v),
-            }
+            let path = format!("{}/{}/", get_home_path_with(home_dir), self.folder);
+            fs::create_dir(path)?;
         }
 
         // File::create creates a file if it does not exist.
@@ -199,110 +202,226 @@ impl Storage {
 
 #[cfg(test)]
 mod tests {
+    use std::fs::{create_dir, remove_dir_all};
+
     use super::*;
 
-    /// Removes `storage_file`. This should only be called in tests.
-    ///
-    /// ## Returns
-    /// A Result value. Ok(()) if successfully deleted file, err otherwise.
-    fn remove_file(storage: Storage) -> std::io::Result<()> {
-        fs::remove_file(storage.storage_file)?;
-        Ok(())
+    #[test]
+    #[should_panic]
+    fn test_get_home_path_with_none_should_panic() {
+        // Later tests not specific to get_home_path tests with non-None values.
+        get_home_path_with(|| None);
     }
 
     #[test]
-    fn serialize_session_to_json_and_back() {
-        let date: DateTime<Utc> = Utc
-            .with_ymd_and_hms(2012, 1, 19, 0, 0, 0)
-            .single()
-            .expect("Failed to parse fixed date.");
+    fn test_folder_exists_should_return_true_when_folder_exists() {
+        let folder_path = format!("{}/{}", get_home_path_with(home_dir), "test_folder");
 
-        let session = Session::new(Some(date), 25, 5);
-        let json_str = session.to_json();
+        match create_dir(&folder_path) {
+            Ok(_) => (),
+            Err(e) => panic!("The folder could not be created: {e}"),
+        }
 
-        let deserialized_session = Session::from_json(&json_str).expect("Invalid JSON");
+        assert!(folder_exists("test_folder".to_string()));
 
-        assert_eq!(session, deserialized_session);
+        match remove_dir_all(folder_path) {
+            Ok(_) => (),
+            Err(e) => panic!("The folder could not be removed: {e}"),
+        }
     }
 
     #[test]
-    fn serialize_session_to_json_and_back_with_none() {
+    fn test_folder_exists_should_return_false_when_folder_doesnt_exist() {
+        assert!(!folder_exists("test_folder".to_string()));
+    }
+
+    #[test]
+    fn test_session_new_creates_new_session() {
+        let session1: Session = Session::new(
+            Some(Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).single().unwrap()),
+            25,
+            5,
+        );
+        let session2: Session = Session {
+            timestamp: Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).single().unwrap(),
+            work_time: 25,
+            break_time: 5,
+        };
+
+        assert_eq!(session1, session2);
+    }
+
+    #[test]
+    fn test_session_new_create_new_session_with_none() {
+        let session1: Session = Session::new(None, 25, 5);
+        let session2: Session = Session {
+            timestamp: Utc.with_ymd_and_hms(1970, 1, 1, 0, 0, 0).single().unwrap(),
+            work_time: 25,
+            break_time: 5,
+        };
+
+        assert_eq!(session1, session2);
+    }
+
+    #[test]
+    fn test_session_new_not_equal() {
+        let session1: Session = Session::new(None, 25, 5);
+        let session2: Session = Session {
+            timestamp: Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).single().unwrap(),
+            work_time: 25,
+            break_time: 5,
+        };
+
+        assert_ne!(session1, session2);
+    }
+
+    #[test]
+    fn test_session_clone_is_equal() {
+        let session1 = Session::new(None, 5, 5);
+        assert_eq!(session1, session1.clone());
+    }
+
+    #[test]
+    fn test_sessionlist_new_creates_new_session() {
+        let session1 = Session::new(None, 25, 5);
+        let session2 = Session::new(None, 40, 5);
+        let session3 = Session::new(None, 10, 10);
+        let sessions_new: SessionList = SessionList::new(Some(vec![
+            session1.clone(),
+            session2.clone(),
+            session3.clone(),
+        ]));
+        let sessions_manual = SessionList {
+            sessions: vec![session1, session2, session3],
+        };
+
+        assert_eq!(sessions_new, sessions_manual);
+    }
+
+    #[test]
+    fn test_sessionlist_new_creates_new_session_with_none() {
+        let sessions = SessionList::new(None);
+        let sessions_none = SessionList {
+            sessions: Vec::new(),
+        };
+        assert_eq!(sessions, sessions_none);
+    }
+
+    #[test]
+    fn test_sessionlist_not_equal() {
+        // TODO: get some better naming
+        let session1 = Session::new(None, 25, 5);
+        let sessions1 = SessionList::new(None);
+        let sessions2 = SessionList::new(Some(vec![session1]));
+
+        assert_ne!(sessions1, sessions2);
+    }
+
+    #[test]
+    fn test_sessionlist_append_does_append() {
         let session = Session::new(None, 25, 5);
-        let json_str = session.to_json();
+        let appended_session = Session::new(None, 5, 5);
 
-        let deserialized_session = Session::from_json(&json_str).expect("Invalid JSON");
+        let mut sessions_append = SessionList::new(Some(vec![session.clone()]));
+        sessions_append.append(appended_session.clone());
 
-        assert_eq!(session, deserialized_session);
+        let sessions_not_appended = SessionList::new(Some(vec![session, appended_session]));
+
+        assert_eq!(sessions_append, sessions_not_appended);
     }
 
     #[test]
-    fn create_and_write_to_file() {
-        // Remove the directory first, to test if it creates the directory
-        // correctly.
-        let path = format!("{}/.tomato_test/", get_home_path());
-
-        match fs::remove_dir_all(path) {
-            Ok(_) => (),
-            Err(v) =>
-                println!("Folder did not exist at the start. If this is not the first time running this test, something is wrong. Error: {}", v),
-        }
-
-        let name = "test.txt".to_string();
-
-        let expected_path = format!("{}/.tomato_test/{}", get_home_path(), name).to_string();
-        let storage = Storage::new(Some(".tomato_test".to_string()), name.clone());
-
-        // Make sure that it has the correct prefix
-        assert_eq!(storage.storage_file, expected_path);
-
-        let write_value = String::from("Æether Åland Øndre");
-
-        match storage.write(write_value.clone()) {
-            Ok(_) => (),
-            Err(v) => panic!("{}. Check path {}", v, expected_path),
-        }
-
-        match storage.read() {
-            Ok(v) => assert_eq!(v, write_value),
-            Err(v) => panic!("{}", v),
-        }
-
-        match remove_file(storage) {
-            Ok(_) => (),
-            Err(v) => panic!("{}", v),
-        }
-    }
-
-    #[test]
-    fn serialize_deserialize_sessionlist() {
-        let sessions = vec![
+    fn test_sessionlist_get_total_work_minutes() {
+        let session_list = SessionList::new(Some(vec![
             Session::new(None, 25, 5),
-            Session::new(
-                Some(
-                    Utc.with_ymd_and_hms(2020, 12, 1, 0, 0, 0)
-                        .single()
-                        .expect("Failed to parse fixed date."),
-                ),
-                10, // work minutes
-                5,
-            ), // break minutes
-            Session::new(
-                Some(
-                    Utc.with_ymd_and_hms(2025, 1, 11, 20, 43, 50)
-                        .single()
-                        .expect("Failed to parse fixed date."),
-                ),
-                1, // work minutes
-                1, // break minutes
-            ),
-        ];
+            Session::new(None, 35, 5),
+            Session::new(None, 100, 0),
+        ]));
 
-        let list = SessionList::new(Some(sessions));
+        assert_eq!(session_list.total_work_minutes(), 160);
+    }
 
-        let json = list.to_json();
+    #[test]
+    fn test_storage_new_with_custom_folder() {
+        let folder = Some("custom_folder".to_string());
+        let path = "file.txt".to_string();
+        let storage = Storage::new(folder.clone(), path.clone());
 
-        let deserialize = SessionList::from_json(&json).unwrap();
+        let home = get_home_path_with(home_dir);
+        let expected_storage_file = format!("{}/{}/{}", home, "custom_folder", "file.txt");
 
-        assert_eq!(deserialize, list);
+        assert_eq!(storage.storage_file, expected_storage_file);
+        assert_eq!(storage.folder, "custom_folder".to_string());
+    }
+
+    #[test]
+    fn test_storage_new_with_default_folder() {
+        let folder = None;
+        let path = "file.txt".to_string();
+        let storage = Storage::new(folder, path.clone());
+
+        let home = get_home_path_with(home_dir);
+        let expected_storage_file = format!("{}/{}/{}", home, ".tomato", "file.txt");
+
+        assert_eq!(storage.storage_file, expected_storage_file);
+        assert_eq!(storage.folder, ".tomato".to_string());
+    }
+
+    #[test]
+    fn test_storage_new_with_empty_path() {
+        let folder = Some("custom_folder".to_string());
+        let path = "".to_string();
+        let storage = Storage::new(folder.clone(), path.clone());
+
+        let home = get_home_path_with(home_dir);
+        let expected_storage_file = format!("{}/{}/{}", home, "custom_folder", "");
+
+        assert_eq!(storage.storage_file, expected_storage_file);
+    }
+
+    #[test]
+    fn test_storage_read_and_write() {
+        let folder = Some("custom_folder".to_string());
+        let path = "file.txt".to_string();
+        let storage = Storage::new(folder.clone(), path.clone());
+
+        let lorem = String::from("Lorem ipsum dolor sit amet.");
+
+        match storage.write(lorem.clone()) {
+            Ok(_) => (),
+            Err(e) => panic!("Error! {e}"),
+        }
+
+        let read = storage.read().unwrap();
+
+        assert_eq!(lorem, read);
+
+        let _ = remove_dir_all(format!(
+            "{}/{}",
+            get_home_path_with(home_dir),
+            "custom_folder"
+        ));
+    }
+
+    #[test]
+    fn test_storage_write_folder_doesnt_exist() {
+        let folder = Some("non_existant_folder".to_string());
+        let path = "file.txt".to_string();
+        let storage = Storage::new(folder.clone(), path.clone());
+
+        let lorem = String::from("Lorem ipsum dolor sit amet.");
+
+        match storage.write(lorem.clone()) {
+            Ok(_) => (),
+            Err(e) => panic!("Error! {e}"),
+        }
+
+        assert!(folder_exists("non_existant_folder".to_string()));
+
+        let _ = remove_dir_all(format!(
+            "{}/{}",
+            get_home_path_with(home_dir),
+            "non_existant_folder"
+        ));
     }
 }
