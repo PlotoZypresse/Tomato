@@ -261,7 +261,10 @@ mod tests {
     #[test]
     fn test_load_sessions_no_file() {
         assert_eq!(
-            SessionList::load_sessions(".tomato_test".to_string(), "sessions.json".to_string()),
+            SessionList::load_sessions(
+                ".tomato_test".to_string(),
+                "sessions_non_existant.json".to_string()
+            ),
             SessionList::new(None)
         );
     }
