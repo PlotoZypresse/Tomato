@@ -4,9 +4,9 @@ use std::thread;
 use std::time::Duration;
 
 use crate::json_serializable::JsonSerializable;
+use crate::session::Session;
+use crate::session::SessionList;
 use crate::sound::*;
-use crate::storage::Session;
-use crate::storage::SessionList;
 use crate::storage::Storage;
 
 /// Represents the values of a timer, as well as the time worked in minutes.
