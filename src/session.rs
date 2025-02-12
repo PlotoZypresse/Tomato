@@ -114,6 +114,11 @@ impl SessionList {
 
 #[cfg(test)]
 mod tests {
+    use home::home_dir;
+    use std::fs::remove_dir_all;
+
+    use crate::storage;
+
     use super::*;
 
     #[test]
@@ -220,5 +225,44 @@ mod tests {
         ]));
 
         assert_eq!(session_list.total_work_minutes(), 160);
+    }
+
+    #[test]
+    fn test_load_sessions() {
+        // Write some sessions to a file
+        let storage = Storage::new(
+            Some(".tomato_test".to_string()),
+            "sessions.json".to_string(),
+        );
+        let sessions = SessionList::new(Some(vec![
+            Session::new(None, 25, 5),
+            Session::new(None, 10, 5),
+            Session::new(
+                Some(Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).single().unwrap()),
+                1,
+                1,
+            ),
+        ]));
+
+        let _ = storage.write(sessions.to_json());
+
+        assert_eq!(
+            SessionList::load_sessions(".tomato_test".to_string(), "sessions.json".to_string()),
+            sessions
+        );
+
+        let _ = remove_dir_all(format!(
+            "{}/{}",
+            storage::get_home_path_with(home_dir),
+            ".tomato_test"
+        ));
+    }
+
+    #[test]
+    fn test_load_sessions_no_file() {
+        assert_eq!(
+            SessionList::load_sessions(".tomato_test".to_string(), "sessions.json".to_string()),
+            SessionList::new(None)
+        );
     }
 }

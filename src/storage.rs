@@ -15,7 +15,7 @@ use home::home_dir;
 ///
 /// ## Returns
 /// The home directory. Panics if this cannot be found.
-fn get_home_path_with<F>(home_dir_fn: F) -> String
+pub fn get_home_path_with<F>(home_dir_fn: F) -> String
 where
     F: Fn() -> Option<PathBuf>,
 {
