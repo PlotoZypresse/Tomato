@@ -4,6 +4,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::json_serializable::JsonSerializable;
+use crate::storage::Storage;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Session {
@@ -91,6 +92,25 @@ impl SessionList {
         }
 
         total
+    }
+
+    /// Finds the sessions from `session.json` and deserializes into the
+    /// `SessionList` struct.
+    ///
+    /// ## Returns
+    /// * A SessionList struct containing all previous sessions stored in
+    ///   `sessions.json`.
+    pub fn load_sessions() -> SessionList {
+        let folder = String::from(".tomato");
+        let file_name = String::from("sessions.json");
+        let storage = Storage::new(Some(folder), file_name.clone());
+        let contents = storage.read().unwrap_or_else(|_| "ERR".to_string());
+
+        if contents.is_empty() || contents == "ERR" {
+            SessionList::new(None)
+        } else {
+            SessionList::from_json(&contents).expect("Could not parse the contents of file.")
+        }
     }
 }
 

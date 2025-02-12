@@ -1,56 +1,16 @@
 use crate::{
-    json_serializable::JsonSerializable,
-    menu,
+    menu, session,
+    session::SessionList,
     settings::Settings,
-    storage::{SessionList, Storage},
+    storage::Storage,
     timers::{self, Timer},
 };
 use crossterm::{cursor, execute, terminal};
 use std::io;
 
-fn load_sessions() -> SessionList {
-    let folder = String::from(".tomato");
-    let file_name = String::from("sessions.json");
-
-    let storage = Storage::new(Some(folder), file_name.clone());
-
-    let contents = storage.read().unwrap_or_else(|_| "ERR".to_string());
-
-    if contents.is_empty() || contents == "ERR" {
-        SessionList::new(None)
-    } else {
-        SessionList::from_json(&contents).expect("Could not parse the contents of file.")
-    }
-}
-
-fn load_settings() -> Settings {
-    let folder = String::from(".tomato");
-    let file_name = String::from("settings.json");
-
-    let storage = Storage::new(Some(folder), file_name.clone());
-
-    let contents = storage.read().unwrap_or_else(|_| {
-        let settings = Settings::new(25, 5);
-        match storage.write(settings.to_json()) {
-            Ok(_) => (),
-            Err(v) => panic!(
-                "An error occured while writing the settings to the settings file: {}",
-                v
-            ),
-        }
-        "{}".to_string()
-    });
-
-    if contents.is_empty() || contents == "{}" {
-        Settings::new(25, 5)
-    } else {
-        Settings::from_json(&contents).expect("Could not parse the contents of file.")
-    }
-}
-
 pub fn ui_loop() {
-    let mut sessions = load_sessions();
-    let mut settings = load_settings();
+    let mut sessions = SessionList::load_sessions();
+    let mut settings = Settings::load_settings();
 
     loop {
         if ui(&mut sessions, &mut settings) == 9 {
