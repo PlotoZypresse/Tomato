@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::storage::Storage;
+use crate::{json_serializable::JsonSerializable, storage::Storage};
 
 pub const SETTINGS_VERSION: &str = "0.1";
 
@@ -19,6 +19,8 @@ pub struct Settings {
     pub break_time: u64,
 }
 
+impl JsonSerializable for Settings {}
+
 impl Settings {
     /// Creates a new instance of the `Settings` struct.
     ///
@@ -36,17 +38,6 @@ impl Settings {
             work_time,
             break_time,
         }
-    }
-
-    /// Using serde, converts a the `Session` instance to a string.
-    pub fn to_json(&self) -> String {
-        serde_json::to_string(&self).unwrap()
-    }
-
-    /// Using serde, returns a `Session` instance from a string, if it can be
-    /// deserialized. Otherwise, it returns `None`.
-    pub fn from_json(string: &str) -> Option<Self> {
-        serde_json::from_str(string).ok()
     }
 
     /// Finds the settings from `settings.json` and deserializes into the

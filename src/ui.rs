@@ -1,5 +1,6 @@
 use crate::{
-    menu, session,
+    json_serializable::JsonSerializable,
+    menu,
     session::SessionList,
     settings::Settings,
     storage::Storage,
