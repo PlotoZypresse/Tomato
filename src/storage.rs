@@ -7,7 +7,7 @@
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use home::home_dir;
 
@@ -15,8 +15,11 @@ use home::home_dir;
 ///
 /// ## Returns
 /// The home directory. Panics if this cannot be found.
-fn get_home_path() -> String {
-    let path: String = match home_dir() {
+pub fn get_home_path_with<F>(home_dir_fn: F) -> String
+where
+    F: Fn() -> Option<PathBuf>,
+{
+    let path: String = match home_dir_fn() {
         Some(home_path) => home_path.into_os_string().into_string().unwrap(),
         None => panic!("Impossible to get home dir."),
     };
@@ -24,12 +27,15 @@ fn get_home_path() -> String {
     path
 }
 
-/// Checks whether the folder exists.
+/// Checks whether the folder in user home dir exists.
+///
+/// ## Arguments
+/// * folder: A folder in the home dir (~/).
 ///
 /// ## Returns
 /// True if the folder exists. False otherwise.
 fn folder_exists(folder: String) -> bool {
-    let path = format!("{}/{}", get_home_path(), folder);
+    let path = format!("{}/{}", get_home_path_with(home_dir), folder);
     Path::new(&path).exists()
 }
 
@@ -51,7 +57,7 @@ impl Storage {
         Storage {
             storage_file: format!(
                 "{}/{}/{}",
-                get_home_path(),
+                get_home_path_with(home_dir),
                 folder.clone().unwrap_or(".tomato".to_string()),
                 path
             ),
@@ -65,11 +71,8 @@ impl Storage {
     /// A Result value. Ok(()) if no problems occured, otherwise Err.
     pub fn write(&self, text: String) -> std::io::Result<()> {
         if !folder_exists(self.folder.clone()) {
-            let path = format!("{}/{}/", get_home_path(), self.folder);
-            match fs::create_dir(path) {
-                Ok(_) => (),
-                Err(v) => panic!("{}", v),
-            }
+            let path = format!("{}/{}/", get_home_path_with(home_dir), self.folder);
+            fs::create_dir(path)?;
         }
 
         // File::create creates a file if it does not exist.
@@ -104,52 +107,120 @@ impl Storage {
 
 #[cfg(test)]
 mod tests {
+    use std::fs::{create_dir, remove_dir_all};
+
     use super::*;
 
-    /// Removes `storage_file`. This should only be called in tests.
-    ///
-    /// ## Returns
-    /// A Result value. Ok(()) if successfully deleted file, err otherwise.
-    fn remove_file(storage: Storage) -> std::io::Result<()> {
-        fs::remove_file(storage.storage_file)?;
-        Ok(())
+    #[test]
+    #[should_panic]
+    fn test_get_home_path_with_none_should_panic() {
+        // Later tests not specific to get_home_path tests with non-None values.
+        get_home_path_with(|| None);
     }
 
     #[test]
-    fn create_and_write_to_file() {
-        // Remove the directory first, to test if it creates the directory
-        // correctly.
-        let path = format!("{}/.tomato_test/", get_home_path());
+    fn test_folder_exists_should_return_true_when_folder_exists() {
+        let folder_path = format!("{}/{}", get_home_path_with(home_dir), "test_folder");
 
-        match fs::remove_dir_all(path) {
+        match create_dir(&folder_path) {
             Ok(_) => (),
-            Err(v) =>
-                println!("Folder did not exist at the start. If this is not the first time running this test, something is wrong. Error: {}", v),
+            Err(e) => panic!("The folder could not be created: {e}"),
         }
 
-        let name = "test.txt".to_string();
+        assert!(folder_exists("test_folder".to_string()));
 
-        let expected_path = format!("{}/.tomato_test/{}", get_home_path(), name).to_string();
-        let storage = Storage::new(Some(".tomato_test".to_string()), name.clone());
-
-        // Make sure that it has the correct prefix
-        assert_eq!(storage.storage_file, expected_path);
-
-        let write_value = String::from("Æether Åland Øndre");
-
-        match storage.write(write_value.clone()) {
+        match remove_dir_all(folder_path) {
             Ok(_) => (),
-            Err(v) => panic!("{}. Check path {}", v, expected_path),
+            Err(e) => panic!("The folder could not be removed: {e}"),
         }
+    }
 
-        match storage.read() {
-            Ok(v) => assert_eq!(v, write_value),
-            Err(v) => panic!("{}", v),
-        }
+    #[test]
+    fn test_folder_exists_should_return_false_when_folder_doesnt_exist() {
+        assert!(!folder_exists("test_folder".to_string()));
+    }
 
-        match remove_file(storage) {
+    #[test]
+    fn test_storage_new_with_custom_folder() {
+        let folder = Some("custom_folder".to_string());
+        let path = "file.txt".to_string();
+        let storage = Storage::new(folder.clone(), path.clone());
+
+        let home = get_home_path_with(home_dir);
+        let expected_storage_file = format!("{}/{}/{}", home, "custom_folder", "file.txt");
+
+        assert_eq!(storage.storage_file, expected_storage_file);
+        assert_eq!(storage.folder, "custom_folder".to_string());
+    }
+
+    #[test]
+    fn test_storage_new_with_default_folder() {
+        let folder = None;
+        let path = "file.txt".to_string();
+        let storage = Storage::new(folder, path.clone());
+
+        let home = get_home_path_with(home_dir);
+        let expected_storage_file = format!("{}/{}/{}", home, ".tomato", "file.txt");
+
+        assert_eq!(storage.storage_file, expected_storage_file);
+        assert_eq!(storage.folder, ".tomato".to_string());
+    }
+
+    #[test]
+    fn test_storage_new_with_empty_path() {
+        let folder = Some("custom_folder".to_string());
+        let path = "".to_string();
+        let storage = Storage::new(folder.clone(), path.clone());
+
+        let home = get_home_path_with(home_dir);
+        let expected_storage_file = format!("{}/{}/{}", home, "custom_folder", "");
+
+        assert_eq!(storage.storage_file, expected_storage_file);
+    }
+
+    #[test]
+    fn test_storage_read_and_write() {
+        let folder = Some("custom_folder".to_string());
+        let path = "file.txt".to_string();
+        let storage = Storage::new(folder.clone(), path.clone());
+
+        let lorem = String::from("Lorem ipsum dolor sit amet.");
+
+        match storage.write(lorem.clone()) {
             Ok(_) => (),
-            Err(v) => panic!("{}", v),
+            Err(e) => panic!("Error! {e}"),
         }
+
+        let read = storage.read().unwrap();
+
+        assert_eq!(lorem, read);
+
+        let _ = remove_dir_all(format!(
+            "{}/{}",
+            get_home_path_with(home_dir),
+            "custom_folder"
+        ));
+    }
+
+    #[test]
+    fn test_storage_write_folder_doesnt_exist() {
+        let folder = Some("non_existant_folder".to_string());
+        let path = "file.txt".to_string();
+        let storage = Storage::new(folder.clone(), path.clone());
+
+        let lorem = String::from("Lorem ipsum dolor sit amet.");
+
+        match storage.write(lorem.clone()) {
+            Ok(_) => (),
+            Err(e) => panic!("Error! {e}"),
+        }
+
+        assert!(folder_exists("non_existant_folder".to_string()));
+
+        let _ = remove_dir_all(format!(
+            "{}/{}",
+            get_home_path_with(home_dir),
+            "non_existant_folder"
+        ));
     }
 }

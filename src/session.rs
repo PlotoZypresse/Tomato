@@ -100,9 +100,7 @@ impl SessionList {
     /// ## Returns
     /// * A SessionList struct containing all previous sessions stored in
     ///   `sessions.json`.
-    pub fn load_sessions() -> SessionList {
-        let folder = String::from(".tomato");
-        let file_name = String::from("sessions.json");
+    pub fn load_sessions(folder: String, file_name: String) -> SessionList {
         let storage = Storage::new(Some(folder), file_name.clone());
         let contents = storage.read().unwrap_or_else(|_| "ERR".to_string());
 
@@ -116,63 +114,155 @@ impl SessionList {
 
 #[cfg(test)]
 mod tests {
+    use home::home_dir;
+    use std::fs::remove_dir_all;
+
+    use crate::storage;
+
     use super::*;
 
     #[test]
-    fn serialize_session_to_json_and_back() {
-        let date: DateTime<Utc> = Utc
-            .with_ymd_and_hms(2012, 1, 19, 0, 0, 0)
-            .single()
-            .expect("Failed to parse fixed date.");
+    fn test_session_new_creates_new_session() {
+        let session1: Session = Session::new(
+            Some(Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).single().unwrap()),
+            25,
+            5,
+        );
+        let session2: Session = Session {
+            timestamp: Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).single().unwrap(),
+            work_time: 25,
+            break_time: 5,
+        };
 
-        let session = Session::new(Some(date), 25, 5);
-        let json_str = session.to_json();
-
-        let deserialized_session = Session::from_json(&json_str).expect("Invalid JSON");
-
-        assert_eq!(session, deserialized_session);
+        assert_eq!(session1, session2);
     }
 
     #[test]
-    fn serialize_session_to_json_and_back_with_none() {
+    fn test_session_new_create_new_session_with_none() {
+        let session1: Session = Session::new(None, 25, 5);
+        let session2: Session = Session {
+            timestamp: Utc.with_ymd_and_hms(1970, 1, 1, 0, 0, 0).single().unwrap(),
+            work_time: 25,
+            break_time: 5,
+        };
+
+        assert_eq!(session1, session2);
+    }
+
+    #[test]
+    fn test_session_new_not_equal() {
+        let session1: Session = Session::new(None, 25, 5);
+        let session2: Session = Session {
+            timestamp: Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).single().unwrap(),
+            work_time: 25,
+            break_time: 5,
+        };
+
+        assert_ne!(session1, session2);
+    }
+
+    #[test]
+    fn test_session_clone_is_equal() {
+        let session1 = Session::new(None, 5, 5);
+        assert_eq!(session1, session1.clone());
+    }
+
+    #[test]
+    fn test_sessionlist_new_creates_new_session() {
+        let session1 = Session::new(None, 25, 5);
+        let session2 = Session::new(None, 40, 5);
+        let session3 = Session::new(None, 10, 10);
+        let sessions_new: SessionList = SessionList::new(Some(vec![
+            session1.clone(),
+            session2.clone(),
+            session3.clone(),
+        ]));
+        let sessions_manual = SessionList {
+            sessions: vec![session1, session2, session3],
+        };
+
+        assert_eq!(sessions_new, sessions_manual);
+    }
+
+    #[test]
+    fn test_sessionlist_new_creates_new_session_with_none() {
+        let sessions = SessionList::new(None);
+        let sessions_none = SessionList {
+            sessions: Vec::new(),
+        };
+        assert_eq!(sessions, sessions_none);
+    }
+
+    #[test]
+    fn test_sessionlist_not_equal() {
+        // TODO: get some better naming
+        let session1 = Session::new(None, 25, 5);
+        let sessions1 = SessionList::new(None);
+        let sessions2 = SessionList::new(Some(vec![session1]));
+
+        assert_ne!(sessions1, sessions2);
+    }
+
+    #[test]
+    fn test_sessionlist_append_does_append() {
         let session = Session::new(None, 25, 5);
-        let json_str = session.to_json();
+        let appended_session = Session::new(None, 5, 5);
 
-        let deserialized_session = Session::from_json(&json_str).expect("Invalid JSON");
+        let mut sessions_append = SessionList::new(Some(vec![session.clone()]));
+        sessions_append.append(appended_session.clone());
 
-        assert_eq!(session, deserialized_session);
+        let sessions_not_appended = SessionList::new(Some(vec![session, appended_session]));
+
+        assert_eq!(sessions_append, sessions_not_appended);
     }
 
     #[test]
-    fn serialize_deserialize_sessionlist() {
-        let sessions = vec![
+    fn test_sessionlist_get_total_work_minutes() {
+        let session_list = SessionList::new(Some(vec![
             Session::new(None, 25, 5),
+            Session::new(None, 35, 5),
+            Session::new(None, 100, 0),
+        ]));
+
+        assert_eq!(session_list.total_work_minutes(), 160);
+    }
+
+    #[test]
+    fn test_load_sessions() {
+        // Write some sessions to a file
+        let storage = Storage::new(
+            Some(".tomato_test".to_string()),
+            "sessions.json".to_string(),
+        );
+        let sessions = SessionList::new(Some(vec![
+            Session::new(None, 25, 5),
+            Session::new(None, 10, 5),
             Session::new(
-                Some(
-                    Utc.with_ymd_and_hms(2020, 12, 1, 0, 0, 0)
-                        .single()
-                        .expect("Failed to parse fixed date."),
-                ),
-                10, // work minutes
-                5,
-            ), // break minutes
-            Session::new(
-                Some(
-                    Utc.with_ymd_and_hms(2025, 1, 11, 20, 43, 50)
-                        .single()
-                        .expect("Failed to parse fixed date."),
-                ),
-                1, // work minutes
-                1, // break minutes
+                Some(Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).single().unwrap()),
+                1,
+                1,
             ),
-        ];
+        ]));
 
-        let list = SessionList::new(Some(sessions));
+        let _ = storage.write(sessions.to_json());
 
-        let json = list.to_json();
+        assert_eq!(
+            SessionList::load_sessions(".tomato_test".to_string(), "sessions.json".to_string()),
+            sessions
+        );
 
-        let deserialize = SessionList::from_json(&json).unwrap();
+        let _ = remove_dir_all(format!(
+            "{}/{}",
+            storage::get_home_path_with(home_dir),
+            ".tomato_test"
+        ));
+    }
 
-        assert_eq!(deserialize, list);
+    #[test]
+    fn test_load_sessions_no_file() {
+        assert_eq!(
+            SessionList::load_sessions(".tomato_test".to_string(), "sessions.json".to_string()),
+            SessionList::new(None)
+        );
     }
 }
