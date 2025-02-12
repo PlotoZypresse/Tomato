@@ -10,8 +10,9 @@ use crossterm::{cursor, execute, terminal};
 use std::io;
 
 pub fn ui_loop() {
-    let mut sessions = SessionList::load_sessions();
-    let mut settings = Settings::load_settings();
+    let mut sessions =
+        SessionList::load_sessions(".tomato".to_string(), "sessions.json".to_string());
+    let mut settings = Settings::load_settings(".tomato".to_string(), "sessions.json".to_string());
 
     loop {
         if ui(&mut sessions, &mut settings) == 9 {

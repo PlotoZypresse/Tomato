@@ -100,9 +100,7 @@ impl SessionList {
     /// ## Returns
     /// * A SessionList struct containing all previous sessions stored in
     ///   `sessions.json`.
-    pub fn load_sessions() -> SessionList {
-        let folder = String::from(".tomato");
-        let file_name = String::from("sessions.json");
+    pub fn load_sessions(folder: String, file_name: String) -> SessionList {
         let storage = Storage::new(Some(folder), file_name.clone());
         let contents = storage.read().unwrap_or_else(|_| "ERR".to_string());
 

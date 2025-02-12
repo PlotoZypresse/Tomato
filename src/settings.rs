@@ -46,10 +46,7 @@ impl Settings {
     /// ## Returns
     /// * A Setting struct containing all previous sessions stored in
     ///   `settings.json`.
-    pub fn load_settings() -> Settings {
-        let folder = String::from(".tomato");
-        let file_name = String::from("settings.json");
-
+    pub fn load_settings(folder: String, file_name: String) -> Settings {
         let storage = Storage::new(Some(folder), file_name.clone());
 
         let contents = storage.read().unwrap_or_else(|_| {
