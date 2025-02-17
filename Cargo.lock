@@ -764,6 +764,7 @@ dependencies = [
  "crossterm",
  "home",
  "indicatif",
+ "regex",
  "rodio",
  "serde",
  "serde_json",
