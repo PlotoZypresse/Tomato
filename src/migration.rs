@@ -31,7 +31,7 @@ pub fn migrate_settings(file_contents: &str) {
 /// ## Arguments
 /// * file_contents: The contents of the `settings.json` file.
 fn find_settings_version(file_contents: &str) -> &str {
-    let version = Regex::new(r#""version":"(\d+\.\d+)""#).unwrap();
+    let version = Regex::new(r#""version":"([^"]+)""#).unwrap();
 
     let Some(caps) = version.captures(file_contents) else {
         return "ERR";
@@ -51,11 +51,22 @@ mod tests {
         assert_eq!(find_settings_version(found_settings), "0.1");
     }
 
+    // TODO: Needs to be implemented once an update rolls out
     #[test]
-    fn test_migrate_settings_migrates_correctly() {
-        todo!();
-    }
+    fn test_migrate_settings_migrates_correctly() {}
 
     #[test]
-    fn test_is_correct_version_is_correct() {}
+    fn test_is_correct_version_is_correct() {
+        let found_settings = "{\"version\":\"0.1\",\"work_time\":25,\"break_time\":5}";
+        assert!(is_correct_version(found_settings, "0.1"));
+        assert!(!is_correct_version(found_settings, "0.2"));
+
+        let found_settings = "{\"version\":\"0.5\",\"work_time\":25,\"break_time\":5}";
+        assert!(is_correct_version(found_settings, "0.5"));
+        assert!(!is_correct_version(found_settings, "0.123"));
+
+        let found_settings = "{\"version\":\"2025.1.105\", osidhf aposudhfapoidf hasdfio nadaå vasoåiv j\"work_time\":25,\"break_time\":5}";
+        assert!(is_correct_version(found_settings, "2025.1.105"));
+        assert!(!is_correct_version(found_settings, "0.123"));
+    }
 }
