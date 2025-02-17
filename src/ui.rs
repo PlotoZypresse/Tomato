@@ -1,3 +1,5 @@
+use crate::migration::{is_correct_version, migrate_settings};
+use crate::settings::SETTINGS_VERSION;
 use crate::{
     json_serializable::JsonSerializable,
     menu,
@@ -10,6 +12,12 @@ use crossterm::{cursor, execute, terminal};
 use std::io;
 
 pub fn ui_loop() {
+    let sessions_json = Storage::new(Some(".tomato".to_string()), "sessions.json".to_string());
+    let sessions_json = sessions_json.read().unwrap();
+    if !is_correct_version(sessions_json.as_str(), SETTINGS_VERSION) {
+        migrate_settings(sessions_json.as_str())
+    }
+
     let mut sessions =
         SessionList::load_sessions(".tomato".to_string(), "sessions.json".to_string());
     let mut settings = Settings::load_settings(".tomato".to_string(), "settings.json".to_string());
