@@ -5,7 +5,12 @@ use crate::ui;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(version, about, long_about = None)]
+#[command(
+    version,
+    about = "A simple pomodoro application.",
+    long_about = "This program runs pomodoro work/break cycles, with statistics and settings.\n\
+                  For any command, be aware that there can be multiple parameters, e.g. see `tomato run --help`"
+)]
 struct Opts {
     #[command(subcommand)]
     command: Option<Command>, // Allow running with no subcommand
@@ -13,12 +18,13 @@ struct Opts {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Runs a Pomodoro session with configurable work/break times.
     Run {
-        #[arg(long)]
+        #[arg(long, help = "Duration of work")]
         work: Option<u64>,
 
         // `break_` because `break` is a reserved keyword
-        #[arg(long)]
+        #[arg(long, help = "Duration of break")]
         break_: Option<u64>,
     },
 }
