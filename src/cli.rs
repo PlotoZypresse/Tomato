@@ -29,10 +29,17 @@ enum Command {
     },
     /// Change the default work/break times.
     SetDefaults {},
+    Stats {},
 }
 
 pub fn parse_opts(sessions: &mut SessionList, settings: &mut Settings) {
     let opts = Opts::parse();
+
+    let mut timer: Timer = Timer {
+        work_minutes: settings.work_time,
+        break_minutes: settings.break_time,
+        total_worked_minutes: sessions.total_work_minutes(),
+    };
 
     match &opts.command {
         Some(Command::Run {
@@ -49,12 +56,10 @@ pub fn parse_opts(sessions: &mut SessionList, settings: &mut Settings) {
             ui::start_cycle(&mut timer, sessions);
         }
         Some(Command::SetDefaults {}) => {
-            let mut timer: Timer = Timer {
-                work_minutes: settings.work_time,
-                break_minutes: settings.break_time,
-                total_worked_minutes: sessions.total_work_minutes(),
-            };
             ui::user_input(&mut timer, settings);
+        }
+        Some(Command::Stats {}) => {
+            ui::stats(&mut timer);
         }
         None => {
             ui::ui_loop(sessions, settings);
