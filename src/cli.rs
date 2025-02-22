@@ -29,6 +29,7 @@ enum Command {
     },
     /// Change the default work/break times.
     SetDefaults {},
+    /// Show the statistics for your pomodoro sessions.
     Stats {},
 }
 
