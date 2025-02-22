@@ -9,13 +9,9 @@ use crate::{
 use crossterm::{cursor, execute, terminal};
 use std::io;
 
-pub fn ui_loop() {
-    let mut sessions =
-        SessionList::load_sessions(".tomato".to_string(), "sessions.json".to_string());
-    let mut settings = Settings::load_settings(".tomato".to_string(), "settings.json".to_string());
-
+pub fn ui_loop(sessions: &mut SessionList, settings: &mut Settings) {
     loop {
-        if ui(&mut sessions, &mut settings) == 9 {
+        if ui(sessions, settings) == 9 {
             break;
         }
     }
