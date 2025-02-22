@@ -94,22 +94,7 @@ fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
                 start_cycle(&mut timer, session_list);
             }
             3 => {
-                let minutes = timer.total_worked_minutes;
-
-                if minutes == 0 {
-                    println!(
-                        "You've worked for 0 minutes in total! It's almost better than nothing!"
-                    );
-                } else if minutes <= 25 {
-                    println!(
-                        "You've worked for {minutes} minutes in total! It's better than nothing!"
-                    );
-                } else {
-                    println!("You've worked for {minutes} minutes! Good job!");
-                }
-                println!("...Press Enter to return to the menu...");
-                let mut dummy = String::new();
-                io::stdin().read_line(&mut dummy).unwrap();
+                stats(&mut timer);
             }
             9 => {
                 println!("Exiting...");
@@ -135,6 +120,21 @@ pub fn start_cycle(timer: &mut Timer, sessions: &mut SessionList) {
     io::stdin().read_line(&mut dummy).unwrap();
     timers::pomodoro_break_timer(timer, sessions);
     println!("\nPress Enter to return to the menu.");
+    let mut dummy = String::new();
+    io::stdin().read_line(&mut dummy).unwrap();
+}
+
+pub fn stats(timer: &mut Timer) {
+    let minutes = timer.total_worked_minutes;
+
+    if minutes == 0 {
+        println!("You've worked for 0 minutes in total! It's almost better than nothing!");
+    } else if minutes <= 25 {
+        println!("You've worked for {minutes} minutes in total! It's better than nothing!");
+    } else {
+        println!("You've worked for {minutes} minutes! Good job!");
+    }
+    println!("...Press Enter to return to the menu...");
     let mut dummy = String::new();
     io::stdin().read_line(&mut dummy).unwrap();
 }
