@@ -88,13 +88,15 @@ fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
             1 => {
                 //time_tup =
                 user_input(&mut timer, settings);
-                println!("Work and break timers set.\n");
+                get_input_before_going_back_to_menu();
             }
             2 => {
                 start_cycle(&mut timer, session_list);
+                get_input_before_going_back_to_menu();
             }
             3 => {
                 stats(&mut timer);
+                get_input_before_going_back_to_menu();
             }
             9 => {
                 println!("Exiting...");
@@ -119,9 +121,6 @@ pub fn start_cycle(timer: &mut Timer, sessions: &mut SessionList) {
     let mut dummy = String::new();
     io::stdin().read_line(&mut dummy).unwrap();
     timers::pomodoro_break_timer(timer, sessions);
-    println!("\nPress Enter to return to the menu.");
-    let mut dummy = String::new();
-    io::stdin().read_line(&mut dummy).unwrap();
 }
 
 pub fn stats(timer: &mut Timer) {
@@ -134,7 +133,11 @@ pub fn stats(timer: &mut Timer) {
     } else {
         println!("You've worked for {minutes} minutes! Good job!");
     }
-    println!("...Press Enter to return to the menu...");
+}
+
+// TODO: Get a new name for this function.
+fn get_input_before_going_back_to_menu() {
+    println!("\nPress Enter to return to the menu.");
     let mut dummy = String::new();
     io::stdin().read_line(&mut dummy).unwrap();
 }
