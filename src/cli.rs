@@ -27,6 +27,8 @@ enum Command {
         #[arg(long, help = "Duration of break")]
         break_: Option<u64>,
     },
+    /// Change the default work/break times.
+    SetDefaults {},
 }
 
 pub fn parse_opts(sessions: &mut SessionList, settings: &mut Settings) {
@@ -45,6 +47,14 @@ pub fn parse_opts(sessions: &mut SessionList, settings: &mut Settings) {
                 total_worked_minutes: sessions.total_work_minutes(),
             };
             ui::start_cycle(&mut timer, sessions);
+        }
+        Some(Command::SetDefaults {}) => {
+            let mut timer: Timer = Timer {
+                work_minutes: settings.work_time,
+                break_minutes: settings.break_time,
+                total_worked_minutes: sessions.total_work_minutes(),
+            };
+            ui::user_input(&mut timer, settings);
         }
         None => {
             ui::ui_loop(sessions, settings);

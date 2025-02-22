@@ -34,7 +34,7 @@ fn get_number_from_input() -> u64 {
     }
 }
 
-fn user_input(timer: &mut Timer, settings: &mut Settings) {
+pub fn user_input(timer: &mut Timer, settings: &mut Settings) {
     // time input for timer time
     println!("How long should the Pomodoro timer last?");
     println!("Please input in minutes: ");
