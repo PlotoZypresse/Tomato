@@ -16,5 +16,5 @@ fn main() {
         SessionList::load_sessions(".tomato".to_string(), "sessions.json".to_string());
     let mut settings = Settings::load_settings(".tomato".to_string(), "settings.json".to_string());
 
-    ui::ui_loop(&mut sessions, &mut settings);
+    cli::parse_opts(&mut sessions, &mut settings);
 }
