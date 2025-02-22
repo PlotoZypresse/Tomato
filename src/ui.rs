@@ -91,22 +91,7 @@ fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
                 println!("Work and break timers set.\n");
             }
             2 => {
-                execute!(
-                    std::io::stdout(),
-                    terminal::Clear(terminal::ClearType::All),
-                    cursor::MoveTo(0, 0)
-                )
-                .unwrap();
-
-                println!("\nStarting Pomodoro timer...");
-                timers::pomodoro_work_timer(&mut timer);
-                println!("...Press Enter to start the break...");
-                let mut dummy = String::new();
-                io::stdin().read_line(&mut dummy).unwrap();
-                timers::pomodoro_break_timer(&timer, session_list);
-                println!("\nPress Enter to return to the menu.");
-                let mut dummy = String::new();
-                io::stdin().read_line(&mut dummy).unwrap();
+                start_cycle(&mut timer, session_list);
             }
             3 => {
                 let minutes = timer.total_worked_minutes;
@@ -133,4 +118,23 @@ fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
             _ => println!("Invalid option. Please try again.\n"),
         }
     }
+}
+
+pub fn start_cycle(timer: &mut Timer, sessions: &mut SessionList) {
+    execute!(
+        std::io::stdout(),
+        terminal::Clear(terminal::ClearType::All),
+        cursor::MoveTo(0, 0)
+    )
+    .unwrap();
+
+    println!("\nStarting Pomodoro timer...");
+    timers::pomodoro_work_timer(timer);
+    println!("...Press Enter to start the break...");
+    let mut dummy = String::new();
+    io::stdin().read_line(&mut dummy).unwrap();
+    timers::pomodoro_break_timer(timer, sessions);
+    println!("\nPress Enter to return to the menu.");
+    let mut dummy = String::new();
+    io::stdin().read_line(&mut dummy).unwrap();
 }
