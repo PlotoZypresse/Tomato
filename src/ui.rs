@@ -103,6 +103,8 @@ fn user_input(timer: &mut Timer, settings: &mut Settings) {
         .expect("Something went wrong while trying to write to settings.json");
 }
 
+fn user_text_input() -> String {}
+
 fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
     let total_minutes = session_list.total_work_minutes();
 
@@ -167,6 +169,9 @@ fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
                 println!("...Press Enter to return to the menu...");
                 let mut dummy = String::new();
                 io::stdin().read_line(&mut dummy).unwrap();
+            }
+            4 => {
+                println!("Please input your desired notification text.")
             }
             9 => {
                 println!("Exiting...");
