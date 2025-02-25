@@ -76,6 +76,20 @@ fn get_number_from_input() -> u64 {
     }
 }
 
+fn user_text_input() -> String {
+    loop {
+        //println!("Please input your text");
+
+        let mut input_text = String::new();
+
+        if io::stdin().read_line(&mut input_text).is_ok() {
+            return input_text.trim().to_string();
+        } else {
+            println!("Failed to read input. Please try again.");
+        }
+    }
+}
+
 fn user_input(timer: &mut Timer, settings: &mut Settings) {
     // time input for timer time
     println!("How long should the Pomodoro timer last?");
@@ -102,8 +116,6 @@ fn user_input(timer: &mut Timer, settings: &mut Settings) {
         .write(settings.to_json())
         .expect("Something went wrong while trying to write to settings.json");
 }
-
-fn user_text_input() -> String {}
 
 fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
     let total_minutes = session_list.total_work_minutes();
@@ -171,7 +183,15 @@ fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
                 io::stdin().read_line(&mut dummy).unwrap();
             }
             4 => {
-                println!("Please input your desired notification text.")
+                println!("Please input your desired notification for getting work done");
+                let work_msg = user_text_input();
+                println!("Please input your desired notification for getting back to work.");
+                let break_msg = user_text_input();
+
+                settings.notification.work_msg = work_msg;
+                settings.notification.break_msg = break_msg;
+
+                println!("Individaul notification messages set!")
             }
             9 => {
                 println!("Exiting...");
