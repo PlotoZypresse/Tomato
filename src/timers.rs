@@ -85,7 +85,7 @@ pub fn pomodoro_work_timer(timer: &mut Timer, settings: &Settings) {
 
     println!("✅ Pomodoro Timer completed\n");
 
-    if settings.notification.enable == true {
+    if settings.notification.enable {
         notify::send_notification_work();
     }
 
@@ -138,7 +138,7 @@ pub fn pomodoro_break_timer(timer: &Timer, session_list: &mut SessionList, setti
 
     println!("✅ Break is completed\n");
 
-    if settings.notification.enable == true {
+    if settings.notification.enable {
         notify::send_notification_break();
     }
 
