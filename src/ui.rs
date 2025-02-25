@@ -155,11 +155,11 @@ fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
                 .unwrap();
 
                 println!("\nStarting Pomodoro timer...");
-                timers::pomodoro_work_timer(&mut timer);
+                timers::pomodoro_work_timer(&mut timer, &settings);
                 println!("...Press Enter to start the break...");
                 let mut dummy = String::new();
                 io::stdin().read_line(&mut dummy).unwrap();
-                timers::pomodoro_break_timer(&timer, session_list);
+                timers::pomodoro_break_timer(&timer, session_list, &settings);
                 println!("\nPress Enter to return to the menu.");
                 let mut dummy = String::new();
                 io::stdin().read_line(&mut dummy).unwrap();
@@ -192,6 +192,25 @@ fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
                 settings.notification.break_msg = break_msg;
 
                 println!("Individaul notification messages set!")
+            }
+            5 => {
+                if settings.notification.enable == true {
+                    println!("To turn off notifications type 0 and press enter.");
+                    let toggle = get_number_from_input();
+                    if toggle == 0 {
+                        settings.notification.enable = false;
+                    } else {
+                        println!("Notification settings not changed try again.")
+                    }
+                } else {
+                    println!("To turn on notifications type 1 and press enter.");
+                    let toggle = get_number_from_input();
+                    if toggle == 1 {
+                        settings.notification.enable = true;
+                    } else {
+                        println!("Notification settings not changed try again.")
+                    }
+                }
             }
             9 => {
                 println!("Exiting...");

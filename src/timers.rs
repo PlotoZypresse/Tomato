@@ -5,6 +5,7 @@ use std::time::Duration;
 
 use crate::json_serializable::JsonSerializable;
 use crate::notify;
+use crate::settings::Settings;
 use crate::sound::*;
 use crate::storage::Session;
 use crate::storage::SessionList;
@@ -55,7 +56,7 @@ impl Timer {
     }
 }
 
-pub fn pomodoro_work_timer(timer: &mut Timer) {
+pub fn pomodoro_work_timer(timer: &mut Timer, settings: &Settings) {
     // convert the input time to seconds
     let time_to_sec = &timer.work_minutes * 60;
 
@@ -84,7 +85,9 @@ pub fn pomodoro_work_timer(timer: &mut Timer) {
 
     println!("✅ Pomodoro Timer completed\n");
 
-    notify::send_notification_work();
+    if settings.notification.enable == true {
+        notify::send_notification_work();
+    }
 
     play_sound(POMODORO_FINISH.to_vec(), 2);
 
@@ -92,7 +95,7 @@ pub fn pomodoro_work_timer(timer: &mut Timer) {
     timer.add_worked_minutes(timer.work_minutes);
 }
 
-pub fn pomodoro_break_timer(timer: &Timer, session_list: &mut SessionList) {
+pub fn pomodoro_break_timer(timer: &Timer, session_list: &mut SessionList, settings: &Settings) {
     let break_time_sec = timer.break_minutes * 60;
 
     let bar = ProgressBar::new(break_time_sec);
@@ -135,7 +138,9 @@ pub fn pomodoro_break_timer(timer: &Timer, session_list: &mut SessionList) {
 
     println!("✅ Break is completed\n");
 
-    notify::send_notification_break();
+    if settings.notification.enable == true {
+        notify::send_notification_break();
+    }
 
     play_sound(BREAK_FINISH.to_vec(), 2);
 }
