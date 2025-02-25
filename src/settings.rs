@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::{json_serializable::JsonSerializable, storage::Storage};
+
 pub const SETTINGS_VERSION: &str = "0.1";
 
 /// The `Settings` struct holds all the settings which will be saved and loaded
@@ -35,6 +37,8 @@ impl Default for Notifications {
     }
 }
 
+impl JsonSerializable for Settings {}
+
 impl Settings {
     /// Creates a new instance of the `Settings` struct.
     ///
@@ -55,15 +59,32 @@ impl Settings {
         }
     }
 
-    /// Using serde, converts a the `Session` instance to a string.
-    pub fn to_json(&self) -> String {
-        serde_json::to_string(&self).unwrap()
-    }
+    /// Finds the settings from `settings.json` and deserializes into the
+    /// `Setting` struct.
+    ///
+    /// ## Returns
+    /// * A Setting struct containing all previous sessions stored in
+    ///   `settings.json`.
+    pub fn load_settings(folder: String, file_name: String) -> Settings {
+        let storage = Storage::new(Some(folder), file_name.clone());
 
-    /// Using serde, returns a `Session` instance from a string, if it can be
-    /// deserialized. Otherwise, it returns `None`.
-    pub fn from_json(string: &str) -> Option<Self> {
-        serde_json::from_str(string).ok()
+        let contents = storage.read().unwrap_or_else(|_| {
+            let settings = Settings::new(25, 5);
+            match storage.write(settings.to_json()) {
+                Ok(_) => (),
+                Err(v) => panic!(
+                    "An error occured while writing the settings to the settings file: {}",
+                    v
+                ),
+            }
+            "{}".to_string()
+        });
+
+        if contents.is_empty() || contents == "{}" {
+            Settings::new(25, 5)
+        } else {
+            Settings::from_json(&contents).expect("Could not parse the contents of file.")
+        }
     }
 }
 

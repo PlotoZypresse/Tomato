@@ -3,6 +3,7 @@ use crate::{
     menu,
     settings::{Notifications, Settings},
     storage::{SessionList, Storage},
+    session::SessionList,
     timers::{self, Timer},
 };
 use crossterm::{cursor, execute, terminal};
@@ -49,8 +50,9 @@ fn load_settings() -> Settings {
 }
 
 pub fn ui_loop() {
-    let mut sessions = load_sessions();
-    let mut settings = load_settings();
+    let mut sessions =
+        SessionList::load_sessions(".tomato".to_string(), "sessions.json".to_string());
+    let mut settings = Settings::load_settings(".tomato".to_string(), "settings.json".to_string());
 
     loop {
         if ui(&mut sessions, &mut settings) == 9 {
