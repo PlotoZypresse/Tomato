@@ -1,7 +1,7 @@
 use crate::json_serializable::JsonSerializable;
 use crate::{
     menu,
-    session::SessionList, // Corrected import
+    session::SessionList,
     settings::Settings,
     storage::Storage,
     timers::{self, Timer},
