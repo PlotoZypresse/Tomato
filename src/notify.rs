@@ -1,3 +1,4 @@
+use crate::json_serializable::JsonSerializable;
 use crate::{
     settings::{Notifications, Settings},
     storage::Storage,
@@ -33,7 +34,6 @@ pub fn send_notification_work() {
     let settings = load_settings();
     let _ = Notification::new()
         .summary(&settings.notification.work_msg)
-        //.body("Well done being productive")
         .icon("firefox")
         .show();
 }
@@ -42,7 +42,6 @@ pub fn send_notification_break() {
     let settings = load_settings();
     let _ = Notification::new()
         .summary(&settings.notification.break_msg)
-        //.body("Get back to work")
         .icon("firefox")
         .show();
 }

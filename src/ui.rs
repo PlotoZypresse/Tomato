@@ -1,53 +1,54 @@
+use crate::json_serializable::JsonSerializable;
 use crate::{
-    json_serializable::JsonSerializable,
     menu,
-    settings::{Notifications, Settings},
-    storage::{SessionList, Storage},
-    session::SessionList,
+    session::SessionList, // Corrected import
+    settings::Settings,
+    storage::Storage,
     timers::{self, Timer},
 };
+
 use crossterm::{cursor, execute, terminal};
 use std::io;
 
-fn load_sessions() -> SessionList {
-    let folder = String::from(".tomato");
-    let file_name = String::from("sessions.json");
+// fn load_sessions() -> SessionList {
+//     let folder = String::from(".tomato");
+//     let file_name = String::from("sessions.json");
 
-    let storage = Storage::new(Some(folder), file_name.clone());
+//     let storage = Storage::new(Some(folder), file_name.clone());
 
-    let contents = storage.read().unwrap_or_else(|_| "ERR".to_string());
+//     let contents = storage.read().unwrap_or_else(|_| "ERR".to_string());
 
-    if contents.is_empty() || contents == "ERR" {
-        SessionList::new(None)
-    } else {
-        SessionList::from_json(&contents).expect("Could not parse the contents of file.")
-    }
-}
+//     if contents.is_empty() || contents == "ERR" {
+//         SessionList::new(None)
+//     } else {
+//         SessionList::from_json(&contents).expect("Could not parse the contents of file.")
+//     }
+// }
 
-fn load_settings() -> Settings {
-    let folder = String::from(".tomato");
-    let file_name = String::from("settings.json");
+// fn load_settings() -> Settings {
+//     let folder = String::from(".tomato");
+//     let file_name = String::from("settings.json");
 
-    let storage = Storage::new(Some(folder), file_name.clone());
+//     let storage = Storage::new(Some(folder), file_name.clone());
 
-    let contents = storage.read().unwrap_or_else(|_| {
-        let settings = Settings::new(25, 5, Notifications::default());
-        match storage.write(settings.to_json()) {
-            Ok(_) => (),
-            Err(v) => panic!(
-                "An error occured while writing the settings to the settings file: {}",
-                v
-            ),
-        }
-        "{}".to_string()
-    });
+//     let contents = storage.read().unwrap_or_else(|_| {
+//         let settings = Settings::new(25, 5, Notifications::default());
+//         match storage.write(settings.to_json()) {
+//             Ok(_) => (),
+//             Err(v) => panic!(
+//                 "An error occured while writing the settings to the settings file: {}",
+//                 v
+//             ),
+//         }
+//         "{}".to_string()
+//     });
 
-    if contents.is_empty() || contents == "{}" {
-        Settings::new(25, 5, Notifications::default())
-    } else {
-        Settings::from_json(&contents).expect("Could not parse the contents of file.")
-    }
-}
+//     if contents.is_empty() || contents == "{}" {
+//         Settings::new(25, 5, Notifications::default())
+//     } else {
+//         Settings::from_json(&contents).expect("Could not parse the contents of file.")
+//     }
+// }
 
 pub fn ui_loop() {
     let mut sessions =
@@ -80,8 +81,6 @@ fn get_number_from_input() -> u64 {
 
 fn user_text_input() -> String {
     loop {
-        //println!("Please input your text");
-
         let mut input_text = String::new();
 
         if io::stdin().read_line(&mut input_text).is_ok() {

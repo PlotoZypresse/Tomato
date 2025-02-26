@@ -69,7 +69,7 @@ impl Settings {
         let storage = Storage::new(Some(folder), file_name.clone());
 
         let contents = storage.read().unwrap_or_else(|_| {
-            let settings = Settings::new(25, 5);
+            let settings = Settings::new(25, 5, Notifications::default());
             match storage.write(settings.to_json()) {
                 Ok(_) => (),
                 Err(v) => panic!(
@@ -81,7 +81,7 @@ impl Settings {
         });
 
         if contents.is_empty() || contents == "{}" {
-            Settings::new(25, 5)
+            Settings::new(25, 5, Notifications::default())
         } else {
             Settings::from_json(&contents).expect("Could not parse the contents of file.")
         }
