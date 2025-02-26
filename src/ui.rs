@@ -149,8 +149,15 @@ fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
                 println!("Please input your desired notification for getting back to work.");
                 let break_msg = user_text_input();
 
+                let file_name = String::from("settings.json");
+                let settings_storage = Storage::new(None, file_name);
+
                 settings.notification.work_msg = work_msg;
                 settings.notification.break_msg = break_msg;
+
+                settings_storage
+                    .write(settings.to_json())
+                    .expect("Something went wrong while trying to write to settings.json");
 
                 println!("Individaul notification messages set!")
             }
