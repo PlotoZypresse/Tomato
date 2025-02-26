@@ -5,9 +5,9 @@ use std::time::Duration;
 
 use crate::json_serializable::JsonSerializable;
 use crate::notify;
-use crate::settings::Settings;
 use crate::session::Session;
 use crate::session::SessionList;
+use crate::settings::Settings;
 use crate::sound::*;
 use crate::storage::Storage;
 
