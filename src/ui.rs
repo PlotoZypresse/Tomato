@@ -1,11 +1,12 @@
+use crate::json_serializable::JsonSerializable;
 use crate::{
-    json_serializable::JsonSerializable,
     menu,
     session::SessionList,
     settings::Settings,
     storage::Storage,
     timers::{self, Timer},
 };
+
 use crossterm::{cursor, execute, terminal};
 use std::io;
 
@@ -35,6 +36,18 @@ fn get_number_from_input() -> u64 {
         // If the number cannot succesfully be parsed, then ask the user to
         // try again, and run the loop again.
         println!("Invalid input! Please input a positive integer.")
+    }
+}
+
+fn user_text_input() -> String {
+    loop {
+        let mut input_text = String::new();
+
+        if io::stdin().read_line(&mut input_text).is_ok() {
+            return input_text.trim().to_string();
+        } else {
+            println!("Failed to read input. Please try again.");
+        }
     }
 }
 
@@ -103,11 +116,11 @@ fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
                 .unwrap();
 
                 println!("\nStarting Pomodoro timer...");
-                timers::pomodoro_work_timer(&mut timer);
+                timers::pomodoro_work_timer(&mut timer, settings);
                 println!("...Press Enter to start the break...");
                 let mut dummy = String::new();
                 io::stdin().read_line(&mut dummy).unwrap();
-                timers::pomodoro_break_timer(&timer, session_list);
+                timers::pomodoro_break_timer(&timer, session_list, settings);
                 println!("\nPress Enter to return to the menu.");
                 let mut dummy = String::new();
                 io::stdin().read_line(&mut dummy).unwrap();
@@ -129,6 +142,43 @@ fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
                 println!("...Press Enter to return to the menu...");
                 let mut dummy = String::new();
                 io::stdin().read_line(&mut dummy).unwrap();
+            }
+            4 => {
+                println!("Please input your desired notification for getting work done");
+                let work_msg = user_text_input();
+                println!("Please input your desired notification for getting back to work.");
+                let break_msg = user_text_input();
+
+                let file_name = String::from("settings.json");
+                let settings_storage = Storage::new(None, file_name);
+
+                settings.notification.work_msg = work_msg;
+                settings.notification.break_msg = break_msg;
+
+                settings_storage
+                    .write(settings.to_json())
+                    .expect("Something went wrong while trying to write to settings.json");
+
+                println!("Individaul notification messages set!")
+            }
+            5 => {
+                if settings.notification.enable {
+                    println!("To turn off notifications type 0 and press enter.");
+                    let toggle = get_number_from_input();
+                    if toggle == 0 {
+                        settings.notification.enable = false;
+                    } else {
+                        println!("Notification settings not changed try again.")
+                    }
+                } else {
+                    println!("To turn on notifications type 1 and press enter.");
+                    let toggle = get_number_from_input();
+                    if toggle == 1 {
+                        settings.notification.enable = true;
+                    } else {
+                        println!("Notification settings not changed try again.")
+                    }
+                }
             }
             9 => {
                 println!("Exiting...");
