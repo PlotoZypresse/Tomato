@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{json_serializable::JsonSerializable, storage::Storage};
 
-pub const SETTINGS_VERSION: &str = "0.1";
+pub const SETTINGS_VERSION: &str = "0.2";
 
 /// The `Settings` struct holds all the settings which will be saved and loaded
 /// from a file.
