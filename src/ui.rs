@@ -12,15 +12,18 @@ use crossterm::{cursor, execute, terminal};
 use std::io;
 
 pub fn ui_loop() {
-    let sessions_json = Storage::new(Some(".tomato".to_string()), "sessions.json".to_string());
-    let sessions_json = sessions_json.read().unwrap();
-    if !is_correct_version(sessions_json.as_str(), SETTINGS_VERSION) {
-        migrate_settings(sessions_json.as_str())
+    let settings_json = Storage::new(Some(".tomato".to_string()), "settings.json".to_string());
+    let settings_json = settings_json.read().unwrap();
+    let mut settings: Settings;
+
+    if !is_correct_version(settings_json.as_str(), SETTINGS_VERSION) {
+        settings = migrate_settings(settings_json.as_str())
+    } else {
+        settings = Settings::load_settings(".tomato".to_string(), "settings.json".to_string());
     }
 
     let mut sessions =
         SessionList::load_sessions(".tomato".to_string(), "sessions.json".to_string());
-    let mut settings = Settings::load_settings(".tomato".to_string(), "settings.json".to_string());
 
     loop {
         if ui(&mut sessions, &mut settings) == 9 {

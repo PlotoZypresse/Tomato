@@ -1,6 +1,9 @@
 //! This file handles the migration of the `Settings` and `Sessions`
 //! struct from earlier versions to new versions.
 
+use crate::json_serializable::JsonSerializable;
+use crate::settings::{Notifications, Settings};
+use crate::storage::Storage;
 use regex::Regex;
 
 /// Checks if the version of the `settings.json` file is up to date
@@ -14,10 +17,14 @@ pub fn is_correct_version(file_contents: &str, settings_version: &str) -> bool {
 ///
 /// ## Arguments
 /// * file_contents: The contents of the `settings.json` file.
-pub fn migrate_settings(file_contents: &str) {
-    match find_settings_version(file_contents) {
-        "0.1" => todo!(),
-        _ => panic!("Did not find a valid version!"),
+pub fn migrate_settings(file_contents: &str) -> Settings {
+    let version = find_settings_version(file_contents);
+    match version {
+        "0.1" => match migrate_0_1(file_contents) {
+            Ok(settings) => settings,
+            Err(()) => panic!("You have a settings version of 0.1, but it could not be migrated. Please report this incident at GitHub.") 
+        },
+        _ => panic!("Did not find a valid version! Found version {version}"),
     }
 }
 
@@ -38,6 +45,32 @@ fn find_settings_version(file_contents: &str) -> &str {
     };
 
     caps.get(1).unwrap().as_str()
+}
+
+fn migrate_0_1(settings: &str) -> Result<Settings, ()> {
+    let work_re = Regex::new(r#""work_time":(\d+)"#).unwrap();
+    let break_re = Regex::new(r#""break_time":(\d+)"#).unwrap();
+    let Some(work_time) = work_re.captures(settings) else {
+        return Err(());
+    };
+    let Some(break_time) = break_re.captures(settings) else {
+        return Err(());
+    };
+
+    let storage: Storage = Storage::new(None, "settings.json".to_owned());
+
+    let return_settings = Settings {
+        version: "0.2".to_owned(),
+        work_time: work_time.get(1).unwrap().as_str().parse::<u64>().unwrap(),
+        break_time: break_time.get(1).unwrap().as_str().parse::<u64>().unwrap(),
+        notification: Notifications::default(),
+    };
+
+    storage
+        .write(return_settings.to_json())
+        .expect("Could not write to settings file during migration.");
+
+    Ok(return_settings)
 }
 
 #[cfg(test)]
