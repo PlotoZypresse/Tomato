@@ -1,6 +1,7 @@
 mod json_serializable;
 mod menu;
 mod migration;
+mod notify;
 mod session;
 mod settings;
 mod sound;

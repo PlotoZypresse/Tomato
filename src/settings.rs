@@ -17,6 +17,24 @@ pub struct Settings {
     pub version: String,
     pub work_time: u64,
     pub break_time: u64,
+    pub notification: Notifications,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct Notifications {
+    pub enable: bool,
+    pub work_msg: String,
+    pub break_msg: String,
+}
+
+impl Default for Notifications {
+    fn default() -> Self {
+        Notifications {
+            enable: true,
+            work_msg: "Good job your work is done. Take a break".to_string(),
+            break_msg: "Break is done. Get back to work".to_string(),
+        }
+    }
 }
 
 impl JsonSerializable for Settings {}
@@ -32,11 +50,12 @@ impl Settings {
     /// A new `Settings` instance where the version of the settings, is the one
     /// which is set in the `SETTINGS_VERSION` const. As well as the break
     /// and work time specified in the arguments.
-    pub fn new(work_time: u64, break_time: u64) -> Self {
+    pub fn new(work_time: u64, break_time: u64, notification: Notifications) -> Self {
         Self {
             version: SETTINGS_VERSION.to_string(),
             work_time,
             break_time,
+            notification,
         }
     }
 
@@ -50,7 +69,7 @@ impl Settings {
         let storage = Storage::new(Some(folder), file_name.clone());
 
         let contents = storage.read().unwrap_or_else(|_| {
-            let settings = Settings::new(25, 5);
+            let settings = Settings::new(25, 5, Notifications::default());
             match storage.write(settings.to_json()) {
                 Ok(_) => (),
                 Err(v) => panic!(
@@ -62,7 +81,7 @@ impl Settings {
         });
 
         if contents.is_empty() || contents == "{}" {
-            Settings::new(25, 5)
+            Settings::new(25, 5, Notifications::default())
         } else {
             Settings::from_json(&contents).expect("Could not parse the contents of file.")
         }
@@ -74,8 +93,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_serialize_settings_to_json_and_back() {
-        let settings = Settings::new(25, 5);
+    fn serialize_settings_to_json_and_back() {
+        let notification = Notifications::default();
+        let settings = Settings::new(25, 5, notification);
 
         let json_str = settings.to_json();
 
