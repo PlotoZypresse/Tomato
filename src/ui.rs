@@ -104,7 +104,7 @@ fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
                 get_input_before_going_back_to_menu();
             }
             2 => {
-                start_cycle(&mut timer, session_list);
+                start_cycle(&mut timer, session_list, settings);
                 get_input_before_going_back_to_menu();
             }
             3 => {
@@ -157,7 +157,7 @@ fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
     }
 }
 
-pub fn start_cycle(timer: &mut Timer, sessions: &mut SessionList) {
+pub fn start_cycle(timer: &mut Timer, sessions: &mut SessionList, settings: &mut Settings) {
     execute!(
         std::io::stdout(),
         terminal::Clear(terminal::ClearType::All),
@@ -166,11 +166,11 @@ pub fn start_cycle(timer: &mut Timer, sessions: &mut SessionList) {
     .unwrap();
 
     println!("\nStarting Pomodoro timer...");
-    timers::pomodoro_work_timer(timer);
+    timers::pomodoro_work_timer(timer, settings);
     println!("...Press Enter to start the break...");
     let mut dummy = String::new();
     io::stdin().read_line(&mut dummy).unwrap();
-    timers::pomodoro_break_timer(timer, sessions);
+    timers::pomodoro_break_timer(timer, sessions, settings);
 }
 
 pub fn stats(timer: &mut Timer) {

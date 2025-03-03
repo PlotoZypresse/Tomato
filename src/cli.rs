@@ -54,7 +54,7 @@ pub fn parse_opts(sessions: &mut SessionList, settings: &mut Settings) {
                 break_minutes: break_time,
                 total_worked_minutes: sessions.total_work_minutes(),
             };
-            ui::start_cycle(&mut timer, sessions);
+            ui::start_cycle(&mut timer, sessions, settings);
         }
         Some(Command::SetDefaults {}) => {
             ui::user_input(&mut timer, settings);
