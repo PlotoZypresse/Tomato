@@ -1,18 +1,29 @@
-use crate::json_serializable::JsonSerializable;
+use crate::migration::{is_correct_version, migrate_settings};
+use crate::settings::SETTINGS_VERSION;
 use crate::{
+    json_serializable::JsonSerializable,
     menu,
     session::SessionList,
     settings::Settings,
     storage::Storage,
     timers::{self, Timer},
 };
-
 use crossterm::{cursor, execute, terminal};
 use std::io;
 
 pub fn ui_loop(sessions: &mut SessionList, settings: &mut Settings) {
+    let settings_json = Storage::new(Some(".tomato".to_string()), "settings.json".to_string());
+    let settings_json = settings_json.read().unwrap();
+
+    let checked_settings: &mut Settings =
+        if !is_correct_version(settings_json.as_str(), SETTINGS_VERSION) {
+            &mut migrate_settings(settings_json.as_str())
+        } else {
+            settings
+        };
+
     loop {
-        if ui(sessions, settings) == 9 {
+        if ui(sessions, checked_settings) == 9 {
             break;
         }
     }

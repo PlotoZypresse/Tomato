@@ -4,6 +4,7 @@ use crate::settings::Settings;
 mod cli;
 mod json_serializable;
 mod menu;
+mod migration;
 mod notify;
 mod session;
 mod settings;

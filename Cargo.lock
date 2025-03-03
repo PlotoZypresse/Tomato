@@ -1400,6 +1400,7 @@ dependencies = [
  "home",
  "indicatif",
  "notify-rust",
+ "regex",
  "rodio",
  "serde",
  "serde_json",
