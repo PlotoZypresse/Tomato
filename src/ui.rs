@@ -11,20 +11,19 @@ use crate::{
 use crossterm::{cursor, execute, terminal};
 use std::io;
 
-
 pub fn ui_loop(sessions: &mut SessionList, settings: &mut Settings) {
-
     let settings_json = Storage::new(Some(".tomato".to_string()), "settings.json".to_string());
     let settings_json = settings_json.read().unwrap();
 
-    if !is_correct_version(settings_json.as_str(), SETTINGS_VERSION) {
-        settings = migrate_settings(settings_json.as_str())
-    } else {
-        settings = Settings::load_settings(".tomato".to_string(), "settings.json".to_string());
-    }
+    let checked_settings: &mut Settings =
+        if !is_correct_version(settings_json.as_str(), SETTINGS_VERSION) {
+            &mut migrate_settings(settings_json.as_str())
+        } else {
+            settings
+        };
 
     loop {
-        if ui(sessions, settings) == 9 {
+        if ui(sessions, checked_settings) == 9 {
             break;
         }
     }
