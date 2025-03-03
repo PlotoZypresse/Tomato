@@ -35,6 +35,8 @@ pub fn print_menu(settings: &mut Settings) {
         settings.work_time, settings.break_time
     );
     println!("3. Stats");
+    println!("4. Edit Notification Messages");
+    println!("5. Toggle Notifications");
     println!("{}", "9. Exit".red());
 
     // User choice prompt

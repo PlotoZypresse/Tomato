@@ -1,21 +1,18 @@
+use crate::json_serializable::JsonSerializable;
 use crate::{
-    json_serializable::JsonSerializable,
     menu,
     session::SessionList,
     settings::Settings,
     storage::Storage,
     timers::{self, Timer},
 };
+
 use crossterm::{cursor, execute, terminal};
 use std::io;
 
-pub fn ui_loop() {
-    let mut sessions =
-        SessionList::load_sessions(".tomato".to_string(), "sessions.json".to_string());
-    let mut settings = Settings::load_settings(".tomato".to_string(), "settings.json".to_string());
-
+pub fn ui_loop(sessions: &mut SessionList, settings: &mut Settings) {
     loop {
-        if ui(&mut sessions, &mut settings) == 9 {
+        if ui(sessions, settings) == 9 {
             break;
         }
     }
@@ -38,7 +35,19 @@ fn get_number_from_input() -> u64 {
     }
 }
 
-fn user_input(timer: &mut Timer, settings: &mut Settings) {
+fn user_text_input() -> String {
+    loop {
+        let mut input_text = String::new();
+
+        if io::stdin().read_line(&mut input_text).is_ok() {
+            return input_text.trim().to_string();
+        } else {
+            println!("Failed to read input. Please try again.");
+        }
+    }
+}
+
+pub fn user_input(timer: &mut Timer, settings: &mut Settings) {
     // time input for timer time
     println!("How long should the Pomodoro timer last?");
     println!("Please input in minutes: ");
@@ -92,43 +101,52 @@ fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
             1 => {
                 //time_tup =
                 user_input(&mut timer, settings);
-                println!("Work and break timers set.\n");
+                get_input_before_going_back_to_menu();
             }
             2 => {
-                execute!(
-                    std::io::stdout(),
-                    terminal::Clear(terminal::ClearType::All),
-                    cursor::MoveTo(0, 0)
-                )
-                .unwrap();
-
-                println!("\nStarting Pomodoro timer...");
-                timers::pomodoro_work_timer(&mut timer);
-                println!("...Press Enter to start the break...");
-                let mut dummy = String::new();
-                io::stdin().read_line(&mut dummy).unwrap();
-                timers::pomodoro_break_timer(&timer, session_list);
-                println!("\nPress Enter to return to the menu.");
-                let mut dummy = String::new();
-                io::stdin().read_line(&mut dummy).unwrap();
+                start_cycle(&mut timer, session_list, settings);
+                get_input_before_going_back_to_menu();
             }
             3 => {
-                let minutes = timer.total_worked_minutes;
+                stats(&mut timer);
+                get_input_before_going_back_to_menu();
+            }
+            4 => {
+                println!("Please input your desired notification for getting work done");
+                let work_msg = user_text_input();
+                println!("Please input your desired notification for getting back to work.");
+                let break_msg = user_text_input();
 
-                if minutes == 0 {
-                    println!(
-                        "You've worked for 0 minutes in total! It's almost better than nothing!"
-                    );
-                } else if minutes <= 25 {
-                    println!(
-                        "You've worked for {minutes} minutes in total! It's better than nothing!"
-                    );
+                let file_name = String::from("settings.json");
+                let settings_storage = Storage::new(None, file_name);
+
+                settings.notification.work_msg = work_msg;
+                settings.notification.break_msg = break_msg;
+
+                settings_storage
+                    .write(settings.to_json())
+                    .expect("Something went wrong while trying to write to settings.json");
+
+                println!("Individaul notification messages set!")
+            }
+            5 => {
+                if settings.notification.enable {
+                    println!("To turn off notifications type 0 and press enter.");
+                    let toggle = get_number_from_input();
+                    if toggle == 0 {
+                        settings.notification.enable = false;
+                    } else {
+                        println!("Notification settings not changed try again.")
+                    }
                 } else {
-                    println!("You've worked for {minutes} minutes! Good job!");
+                    println!("To turn on notifications type 1 and press enter.");
+                    let toggle = get_number_from_input();
+                    if toggle == 1 {
+                        settings.notification.enable = true;
+                    } else {
+                        println!("Notification settings not changed try again.")
+                    }
                 }
-                println!("...Press Enter to return to the menu...");
-                let mut dummy = String::new();
-                io::stdin().read_line(&mut dummy).unwrap();
             }
             9 => {
                 println!("Exiting...");
@@ -137,4 +155,39 @@ fn ui(session_list: &mut SessionList, settings: &mut Settings) -> u64 {
             _ => println!("Invalid option. Please try again.\n"),
         }
     }
+}
+
+pub fn start_cycle(timer: &mut Timer, sessions: &mut SessionList, settings: &mut Settings) {
+    execute!(
+        std::io::stdout(),
+        terminal::Clear(terminal::ClearType::All),
+        cursor::MoveTo(0, 0)
+    )
+    .unwrap();
+
+    println!("\nStarting Pomodoro timer...");
+    timers::pomodoro_work_timer(timer, settings);
+    println!("...Press Enter to start the break...");
+    let mut dummy = String::new();
+    io::stdin().read_line(&mut dummy).unwrap();
+    timers::pomodoro_break_timer(timer, sessions, settings);
+}
+
+pub fn stats(timer: &mut Timer) {
+    let minutes = timer.total_worked_minutes;
+
+    if minutes == 0 {
+        println!("You've worked for 0 minutes in total! It's almost better than nothing!");
+    } else if minutes <= 25 {
+        println!("You've worked for {minutes} minutes in total! It's better than nothing!");
+    } else {
+        println!("You've worked for {minutes} minutes! Good job!");
+    }
+}
+
+// TODO: Get a new name for this function.
+fn get_input_before_going_back_to_menu() {
+    println!("\nPress Enter to return to the menu.");
+    let mut dummy = String::new();
+    io::stdin().read_line(&mut dummy).unwrap();
 }
