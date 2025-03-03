@@ -11,6 +11,7 @@ serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1.0"
 chrono = { version = "0.4.39", features = ["serde"] }
 home = "0.5.11"
+clap = { version = "4.5.20", features = ["derive"]}
 notify-rust = "4"
 
 
