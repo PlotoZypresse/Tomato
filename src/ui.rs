@@ -187,12 +187,19 @@ pub fn start_cycle(timer: &mut Timer, sessions: &mut SessionList, settings: &mut
 pub fn stats(timer: &mut Timer) {
     let minutes = timer.total_worked_minutes;
 
+    println!(
+        "You've worked for {} days, {} hours and {} minutes.",
+        (minutes / (60 * 24)), // Automatically rounds down
+        (minutes % (60 * 24)) / 60,
+        minutes % 60
+    );
+
     if minutes == 0 {
-        println!("You've worked for 0 minutes in total! It's almost better than nothing!");
+        println!("It's almost better than nothing!");
     } else if minutes <= 25 {
-        println!("You've worked for {minutes} minutes in total! It's better than nothing!");
+        println!("It's better than nothing!");
     } else {
-        println!("You've worked for {minutes} minutes! Good job!");
+        println!("Good job!");
     }
 }
 
