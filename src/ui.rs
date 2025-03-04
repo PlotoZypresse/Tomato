@@ -176,8 +176,6 @@ pub fn start_cycle(timer: &mut Timer, sessions: &mut SessionList, settings: &mut
 pub fn stats(timer: &mut Timer) {
     let minutes = timer.total_worked_minutes;
 
-    println!("Minutes: {minutes}");
-
     println!(
         "You've worked for {} days, {} hours and {} minutes.",
         (minutes / (60 * 24)), // Automatically rounds down
